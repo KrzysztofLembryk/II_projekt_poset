@@ -2,19 +2,85 @@
 #include <string>
 #include <unordered_map>
 #include <list>
-
-using std::string;
-using std::cout;
-using std::cin;
-using std::cerr;
-using std::list;
-
-using poset_t = std::unordered_map<string, list<string>>;
-
-std::unordered_map<int, poset_t> allPosets;
+#include <set>
 
 #ifdef NDEBUG
   bool constexpr debug = false;
 #else
   bool constexpr debug = true;
 #endif
+
+using std::string;
+using std::cout;
+using std::cin;
+using std::cerr;
+using std::list;
+using std::set;
+using std::exit;
+
+using poset_t = std::unordered_map<string, list<string>*>;
+
+std::unordered_map<unsigned long, poset_t*> allPosets;
+
+unsigned long poset_new(void)
+{
+  static set<unsigned long> allPosetIDs;
+  static unsigned long id = 0;
+  bool inserted = false;
+  int loopCounter = 0;
+
+  while(true)
+  {
+    auto search = allPosetIDs.find(id);
+
+    if (search != allPosetIDs.end())
+      {
+        id++;
+
+        if(id == 0)
+        {
+          loopCounter++;
+
+          if(loopCounter >= 2)
+          {
+            cerr << "Poset_new - no free IDs to use\n";
+            exit(-1);
+          }
+        }
+      }
+    else
+    {
+      poset_t *newPoset = new poset_t;
+
+      allPosetIDs.insert(id);
+      allPosets.insert({id, newPoset});
+
+      return id;
+    }
+  }
+}
+
+void TEST_poset_new()
+{
+  int id1 = poset_new();
+  int id2 = poset_new();
+
+  if(allPosets.empty())
+    cout << "All posets EMPTY\n";
+  else
+    cout << "succes\n";
+
+  list<string> *list1 = new list<string>;
+
+  allPosets.at(id1)->insert({"trol", list1});
+
+  for(auto iter = allPosets.at(id1)->begin(); iter != allPosets.at(id1)->end(); ++iter)
+    
+
+}
+
+int main()
+{
+  TEST_poset_new();
+  return 0;
+}
