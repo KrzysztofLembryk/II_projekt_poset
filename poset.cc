@@ -73,8 +73,20 @@ void TEST_poset_new()
   list<string> *list1 = new list<string>;
 
   allPosets.at(id1)->insert({"trol", list1});
+  allPosets.at(id1)->at("trol")->push_front("WOLWOLWOOW");
+  allPosets.at(id1)->at("trol")->push_front("xdxdxdxd");
 
   for(auto iter = allPosets.at(id1)->begin(); iter != allPosets.at(id1)->end(); ++iter)
+  {
+    // iter->first = key (id), iter->second = value (poset)
+    cout << "id in poset: " << iter->first << "\n";
+    auto lst = iter->second;
+    cout << "values: ";
+    for(auto iter2 = lst->begin(); iter2 != lst->end(); iter2++)
+    {
+       cout << *iter2 << ", ";
+    }
+  }
     
 
 }
