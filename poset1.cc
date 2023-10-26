@@ -284,7 +284,26 @@ void TEST_poset_new_delete_insert_add()
   printArrOfRelations(*allPosets[id2]->second);
 }
 
+void Test_insert()
+{
+  vectorOfStrings *v = allPosets[0]->first;
+  posetRelationsArray *p = allPosets[0]->second;
 
+  for (const poset_elem &str : *v)
+  {
+    cout << str << " ";
+  }
+  cout << std::endl;
+
+  for (vector<int> &row : *p)
+  {
+    for (int &num : row)
+    {
+      cout << num << " ";
+    }
+    cout << std::endl;
+  }
+}
 
 void filipsTEST()
 {
@@ -304,7 +323,7 @@ void filipsTEST()
   bool a2 = poset_add(id, "B", "C");
   assert(a1 == true);
   assert(a2 == true);
-  //Test_insert();
+  Test_insert();
   int s = poset_size(id);
   cout << s << std::endl;
 }
