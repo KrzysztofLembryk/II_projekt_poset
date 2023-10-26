@@ -248,7 +248,7 @@ void poset_clear(unsigned long id);
 
 // ------------- TESTS -------------
 
-void TEST_poset_new_delete_insert()
+void TEST_poset_new_delete_insert_add()
 {
   cout << "----- TEST_poset_new_delete_insert -----\n";
   cout << "NEW/DELETE SECTION TEST: \n";
@@ -269,7 +269,13 @@ void TEST_poset_new_delete_insert()
 
   assert(poset_insert(id1, "xd") == false && "poset id1 does not exist, but inserting was a success - WRONG\n");
   assert(poset_insert(id2, "A") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "X") == true && "insert into id2 poset was not succesful\n");
   assert(poset_insert(id3, "B") == true && "insert into id3 poset was not succesful\n");
+
+  cout << "ADD SECTION TEST: \n";
+
+  assert(poset_add(id2, "A", "B") == false);
+  assert(poset_add(id2, "A", "X") == true);
 
   cout << "TESTS PASSED\n\n";
   cout << "printing id2=" << id2 << " poset: \n\n";
@@ -278,26 +284,7 @@ void TEST_poset_new_delete_insert()
   printArrOfRelations(*allPosets[id2]->second);
 }
 
-void Test_insert()
-{
-  vectorOfStrings *v = allPosets[0]->first;
-  posetRelationsArray *p = allPosets[0]->second;
 
-  for (const poset_elem &str : *v)
-  {
-    cout << str << " ";
-  }
-  cout << std::endl;
-
-  for (vector<int> &row : *p)
-  {
-    for (int &num : row)
-    {
-      cout << num << " ";
-    }
-    cout << std::endl;
-  }
-}
 
 void filipsTEST()
 {
@@ -317,7 +304,7 @@ void filipsTEST()
   bool a2 = poset_add(id, "B", "C");
   assert(a1 == true);
   assert(a2 == true);
-  Test_insert();
+  //Test_insert();
   int s = poset_size(id);
   cout << s << std::endl;
 }
@@ -326,7 +313,7 @@ void filipsTEST()
 int main()
 {
   
-  TEST_poset_new_delete_insert();
+  TEST_poset_new_delete_insert_add();
 
   return 0;
 }
