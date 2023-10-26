@@ -177,12 +177,12 @@ void deleteRelationsTransitivity(posetRelationsArray *relArr,
 size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
 {
   if (relArr->at(currentElem)[idxOfElemToDelete] == RELATION ||
-            relArr->at(currentElem)[idxOfElemToDelete] == RELATION_TRANSITIVITY)
+          relArr->at(currentElem)[idxOfElemToDelete] == RELATION_TRANSITIVITY)
         {
           for(size_t j = 0; j < nbrOfRows; j++)
           {
-            if(relArr->at(idxOfElemToDelete)[j] == RELATION ||
-            relArr->at(idxOfElemToDelete)[j] == RELATION_TRANSITIVITY && 
+            if((relArr->at(idxOfElemToDelete)[j] == RELATION ||
+            relArr->at(idxOfElemToDelete)[j] == RELATION_TRANSITIVITY) && 
             relArr->at(currentElem)[j] == RELATION_TRANSITIVITY)
             {
               relArr->at(currentElem)[j] = NO_RELATION;
@@ -190,7 +190,27 @@ size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
           }
 
         }
+}
 
+void deleteRelationsLarger(posetRelationsArray *relArr, 
+size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
+{
+
+}
+
+void checkIfElemExistInVecOfStr(vectorOfStrings *v, char const *value, 
+size_t &idx, bool &exist)
+{
+  size_t vSize = v->size();
+  for (size_t i = 0; i < vSize; i++)
+    {
+      if ((*v)[i] == value)
+      {
+        exist = true;
+        idx = i;
+        break;
+      }
+    }
 }
 
 bool poset_remove(unsigned long id, char const *value)
@@ -202,17 +222,9 @@ bool poset_remove(unsigned long id, char const *value)
   if (iter != allPosets.end())
   {
     vectorOfStrings *v = iter->second->first;
-    size_t vSize = v->size();
 
-    for (size_t i = 0; i < vSize; i++)
-    {
-      if ((*v)[i] == value)
-      {
-        elemExists = true;
-        idxOfElem = i;
-        break;
-      }
-    }
+    checkIfElemExistInVecOfStr(v, value, idxOfElem, elemExists);  
+
     if (elemExists)
     {
       (*v).erase((*v).begin() + idxOfElem);
@@ -232,8 +244,8 @@ bool poset_remove(unsigned long id, char const *value)
         }
       }
 
+      relationArr->erase(relationArr->begin() + idxOfElem);
       
-
       return true;
     }
   }
@@ -293,9 +305,16 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
           // if (relationArr->at(i)[index1] != -1 && relationArr->at(i)[index2] == -1)
           //   relationArr->at(i)[index2] = 2;
           if (relationArr->at(i)[index1] == RELATION && relationArr->at(i)[index2] == NO_RELATION)
+          {
             relationArr->at(i)[index2] = RELATION_TRANSITIVITY;
+            relationArr->at(index2)[i] = RELATION_IM_LARGER;
+          }
+            
           else if (relationArr->at(i)[index1] == NO_RELATION && relationArr->at(index2)[i] == RELATION)
+          {
             relationArr->at(index1)[i] = RELATION_TRANSITIVITY;
+            relationArr->at(i)[index1] = RELATION_IM_LARGER;
+          }
         }
 
         return true;
