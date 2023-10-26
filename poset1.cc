@@ -142,6 +142,9 @@ size_t poset_size(unsigned long id)
 
 bool poset_insert(unsigned long id, char const *value)
 {
+  if(value == nullptr)
+    return false;
+  
   auto it = allPosets.find(id);
 
   if (it != allPosets.end())
@@ -226,6 +229,9 @@ size_t &idx, bool &exist)
 
 bool poset_remove(unsigned long id, char const *value)
 {
+  if(value == nullptr)
+    return false;
+  
   bool elemExists = false;
   size_t idxOfElem;
   auto iter = allPosets.find(id);
@@ -284,6 +290,9 @@ void findIndexesOfGivenValues(long long &index1, long long &index2,
 
 bool poset_add(unsigned long id, char const *value1, char const *value2)
 {
+  if(value1 == nullptr || value2 == nullptr)
+    return false;
+  
   auto it = allPosets.find(id);
 
   if (it != allPosets.end())
@@ -345,6 +354,9 @@ bool relationGoodToDelete(posetRelationsArray *relationArr, long long const idx1
 
 bool poset_del(unsigned long id, char const *value1, char const *value2)
 {
+  if(value1 == nullptr || value2 == nullptr)
+    return false;
+  
   auto iter = allPosets.find(id);
 
   if (iter != allPosets.end())
@@ -374,6 +386,9 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
 
 bool poset_test(unsigned long id, char const *value1, char const *value2)
 {
+  if(value1 == nullptr || value2 == nullptr)
+    return false;
+
   auto it = allPosets.find(id);
 
   if (it != allPosets.end())
@@ -424,12 +439,6 @@ int getValOfTwoElemRelation(const char *val1, const char *val2, poset_t const *p
     return 2137;
   
   return p->second->at(idx1)[idx2];
-
-  //checkIfElemExistInVecOfStr(v, var, idx, exist);
-  //if(exist)
-  //  return p->second->at(idx)[id];
-  
-  
 }
 
 void TEST_poset_new_delete_insert_add()
