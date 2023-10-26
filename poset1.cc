@@ -346,13 +346,14 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
   return false;
 };
 
-bool relationGoodToDelete(posetRelationsArray *relationArr, long long const idx1, long long const idx2)
+bool relationGoodToDelete(posetRelationsArray *relationArr, 
+long long const idx1, long long const idx2)
 {
 
   return false;
 }
 
-bool checkIfAnythingBetweenTwoElem(posetRelationsArray *relationArr, 
+bool somethingIsBetweenTwoElem(posetRelationsArray *relationArr, 
 long long const idx1, long long const idx2)
 {
   size_t nbrOfRows = relationArr->size();
@@ -361,14 +362,44 @@ long long const idx1, long long const idx2)
   {
     if((relationArr->at(idx1)[i] == RELATION || 
     relationArr->at(idx1)[i] == RELATION_TRANSITIVITY) && 
-    relationArr->at(i)[idx2] == RELATION ||
-    relationArr->at(i)[idx2] == RELATION_TRANSITIVITY)
+    (relationArr->at(i)[idx2] == RELATION ||
+    relationArr->at(i)[idx2] == RELATION_TRANSITIVITY))
     {
-      return false;
+      return true;
     }
   }
 
-  return true;
+  return false;
+}
+
+bool isAnythingOnTheRight(posetRelationsArray *relArr, long long const idx2)
+{
+  size_t nbrOfCol = relArr->at(idx2).size();
+
+  for(size_t i = 0; i < nbrOfCol; i++)
+  {
+    if(relArr->at(idx2)[i] == RELATION ||
+    relArr->at(idx2)[i] == RELATION_TRANSITIVITY)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool isAnythingOnTheLeft(posetRelationsArray *relArr, long long const idx1)
+{
+  size_t nbrOfCol = relArr->at(idx1).size();
+
+  for(size_t i = 0; i < nbrOfCol; i++)
+  {
+    if(relArr->at(idx1)[i] == RELATION_IM_LARGER)
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool poset_del(unsigned long id, char const *value1, char const *value2)
@@ -395,8 +426,17 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
 
       if (relationArr->at(index1)[index2] == RELATION)
       {
-        if (relationGoodToDelete(relationArr, index1, index2))
+        if(!somethingIsBetweenTwoElem(relationArr, index1, index2))
         {
+          bool isOnTheLeft = isAnythingOnTheLeft(relationArr, index1);
+          bool isOnTheRight = isAnythingOnTheRight(relationArr, index2);
+          
+          // jesli z obu stron cos mamy, to nie mozemy usunac tej relacji
+          // bo zostawimy dziure w ciagu nierownosci
+          if(isOnTheLeft && isOnTheRight)
+            return false;
+          
+
         }
       }
     }
