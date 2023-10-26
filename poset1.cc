@@ -181,8 +181,21 @@ bool poset_remove(unsigned long id, char const *value)
 
     if(elemExists)
     {
+      posetRelationsArray *relationArr = iter->second->second;
+      
       (*v).erase((*v).begin() + idxOfElem);
+      relationArr->erase(relationArr->begin() + idxOfElem);
 
+      size_t nbrOfRows = relationArr->size();
+      vector<int> vec;
+
+      for(size_t i = 0; i < nbrOfRows; i++)
+      {
+        vec = relationArr->at(i);
+        vec.erase(vec.begin() + idxOfElem);
+      }
+        
+      return true;
     }
   }
   return false;
