@@ -99,31 +99,7 @@ unsigned long poset_new(void)
   return id;
 }
 
-void test()
-{
-  poset_t *newPoset = new poset_t;
-  vectorOfStrings newVecOfPosetElem;
-  posetRelationsArray newP;
 
-  newPoset->first = &newVecOfPosetElem;
-  newPoset->second = &newP;
-
-  allPosets.insert({0, newPoset});
-
-  allPosets[0]->first->push_back("69");
-  allPosets[0]->first->push_back("Alaaa");
-  allPosets[0]->second->push_back(vector<int>());
-  allPosets[0]->second->push_back(vector<int>());
-  posetRelationsArray *arr = allPosets[0]->second;
-  (*arr)[0].push_back(1);
-  (*arr)[0].push_back(0);
-  (*arr)[1].push_back(2);
-  (*arr)[1].push_back(3);
-
-  printVectorOfStrings(*(allPosets[0]->first));
-  printArrOfRelations(*arr);
-
-}
 
 
 void poset_delete(unsigned long id)
@@ -165,8 +141,9 @@ bool poset_insert(unsigned long id, char const *value)
       if (str == value)
         return false;
     }
-
-    v->push_back(value);
+    
+    poset_elem elemToAdd(value);
+    v->push_back(elemToAdd);
 
     posetRelationsArray *p = it->second->second;
 
@@ -184,7 +161,15 @@ bool poset_insert(unsigned long id, char const *value)
   return false;
 }
 
-bool poset_remove(unsigned long id, char const *value);
+bool poset_remove(unsigned long id, char const *value)
+{
+  auto iter = allPosets.find(id);
+  if(iter != allPosets.end())
+  {
+
+  }
+  return false;
+}
 
 bool poset_add(unsigned long id, char const *value1, char const *value2)
 {
@@ -327,6 +312,31 @@ void filipsTEST()
   cout << s << std::endl;
 }
 
+void test()
+{
+  poset_t *newPoset = new poset_t;
+  vectorOfStrings newVecOfPosetElem;
+  posetRelationsArray newP;
+
+  newPoset->first = &newVecOfPosetElem;
+  newPoset->second = &newP;
+
+  allPosets.insert({0, newPoset});
+
+  allPosets[0]->first->push_back("69");
+  allPosets[0]->first->push_back("Alaaa");
+  allPosets[0]->second->push_back(vector<int>());
+  allPosets[0]->second->push_back(vector<int>());
+  posetRelationsArray *arr = allPosets[0]->second;
+  (*arr)[0].push_back(1);
+  (*arr)[0].push_back(0);
+  (*arr)[1].push_back(2);
+  (*arr)[1].push_back(3);
+
+  printVectorOfStrings(*(allPosets[0]->first));
+  printArrOfRelations(*arr);
+
+}
 
 int main()
 {
