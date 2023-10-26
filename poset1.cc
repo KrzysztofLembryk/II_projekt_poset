@@ -189,45 +189,44 @@ bool poset_remove(unsigned long id, char const *value);
 bool poset_add(unsigned long id, char const *value1, char const *value2)
 {
   auto it = allPosets.find(id);
+
   if (it != allPosets.end())
   {
-    long long index1 = -1; //hadnt any better idea how to do it
+    long long index1 = -1;
     long long index2 = -1;
     vectorOfStrings *v = it->second->first;
+
     for (index i = 0; i < v->size(); i++) 
     {
       if (v->at(i) == value1) 
-      {
         index1 = i;
-      }
       if (v->at(i) == value2)
-      {
         index2 = i;
-      }
+      if(index1 != -1 && index2 != -1)
+        break;
     }
 
-    if (index1 == -1 || index2 == -1) //there is no element (value1 or value2) in a set
-    {
+    //there is no element (value1 or value2) in a set
+    if (index1 == -1 || index2 == -1) 
       return false;
-    }
     else
     {
-      posetRelationsArray *p = it->second->second;
+      posetRelationsArray *relationArr = it->second->second;
 
-      if (p->at(index1)[index2] == 1 || p->at(index2)[index1] == 1) //if there is an edge between value1 and value2
-      {
+      //if there is an edge between value1 and value2
+      if (relationArr->at(index1)[index2] == 1 || relationArr->at(index2)[index1] == 1) 
         return false;
-      }
       else
       {
-        p->at(index1)[index2] = 1; //edge from index1(value1) to index2 (value2)
+        relationArr->at(index1)[index2] = 1; //edge from index1(value1) to index2 (value2)
 
         //now add edges that will result from transitivity
-        for (index i = 0; i < p->size(); i++) {
-          if (p->at(i)[index1] != -1 && p->at(i)[index2] == -1)
-          {
-            p->at(i)[index2] = 2;
-          }
+        size_t arrSize = relationArr->size();
+
+        for (index i = 0; i < arrSize; i++) 
+        {
+          if (relationArr->at(i)[index1] != -1 && relationArr->at(i)[index2] == -1)
+            relationArr->at(i)[index2] = 2;
         }
 
         return true;
