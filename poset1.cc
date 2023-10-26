@@ -311,11 +311,13 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
       posetRelationsArray *relationArr = it->second->second;
 
       // if there is an edge between value1 and value2
-      if (relationArr->at(index1)[index2] == RELATION || relationArr->at(index2)[index1] == RELATION)
+      if (relationArr->at(index1)[index2] == RELATION || 
+      relationArr->at(index2)[index1] == RELATION)
         return false;
       else
       {
-        relationArr->at(index1)[index2] = RELATION; // edge from index1(value1) to index2 (value2)
+        // edge from index1(value1) to index2 (value2)
+        relationArr->at(index1)[index2] = RELATION; 
         relationArr->at(index2)[index1] = RELATION_IM_LARGER;
 
         // now add edges that will result from transitivity
@@ -323,15 +325,15 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
 
         for (index i = 0; i < nbrOfRows; i++)
         {
-          // if (relationArr->at(i)[index1] != -1 && relationArr->at(i)[index2] == -1)
-          //   relationArr->at(i)[index2] = 2;
-          if (relationArr->at(i)[index1] == RELATION && relationArr->at(i)[index2] == NO_RELATION)
+          if (relationArr->at(i)[index1] == RELATION && 
+          relationArr->at(i)[index2] == NO_RELATION)
           {
             relationArr->at(i)[index2] = RELATION_TRANSITIVITY;
             relationArr->at(index2)[i] = RELATION_IM_LARGER;
           }
             
-          else if (relationArr->at(i)[index1] == NO_RELATION && relationArr->at(index2)[i] == RELATION)
+          else if (relationArr->at(i)[index1] == NO_RELATION && 
+          relationArr->at(index2)[i] == RELATION)
           {
             relationArr->at(index1)[i] = RELATION_TRANSITIVITY;
             relationArr->at(i)[index1] = RELATION_IM_LARGER;
@@ -346,12 +348,7 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
   return false;
 };
 
-bool relationGoodToDelete(posetRelationsArray *relationArr, 
-long long const idx1, long long const idx2)
-{
 
-  return false;
-}
 
 bool somethingIsBetweenTwoElem(posetRelationsArray *relationArr, 
 long long const idx1, long long const idx2)
@@ -402,6 +399,25 @@ bool isAnythingOnTheLeft(posetRelationsArray *relArr, long long const idx1)
   return false;
 }
 
+bool relationGoodToDelete(posetRelationsArray *relationArr, 
+long long const idx1, long long const idx2)
+{
+  if(!somethingIsBetweenTwoElem(relationArr, idx1, idx2))
+  {
+    bool isOnTheLeft = isAnythingOnTheLeft(relationArr, idx1);
+    bool isOnTheRight = isAnythingOnTheRight(relationArr, idx2);
+          
+    // jesli z obu stron cos mamy, to nie mozemy usunac tej relacji
+    // bo zostawimy dziure w ciagu nierownosci
+    if(isOnTheLeft && isOnTheRight)
+      return false;
+     
+    return true;
+  }
+  
+  return false;
+}
+
 bool poset_del(unsigned long id, char const *value1, char const *value2)
 {
   if(value1 == nullptr || value2 == nullptr)
@@ -411,13 +427,11 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
 
   if (iter != allPosets.end())
   {
-    long long index1;
-    long long index2;
+    long long index1, index2;
     vectorOfStrings *v = iter->second->first;
 
     findIndexesOfGivenValues(index1, index2, value1, value2, v);
 
-    // there is no element (value1 or value2) in a set
     if (index1 == -1 || index2 == -1)
       return false;
     else
@@ -426,16 +440,8 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
 
       if (relationArr->at(index1)[index2] == RELATION)
       {
-        if(!somethingIsBetweenTwoElem(relationArr, index1, index2))
+        if(relationGoodToDelete(relationArr, index1, index2))
         {
-          bool isOnTheLeft = isAnythingOnTheLeft(relationArr, index1);
-          bool isOnTheRight = isAnythingOnTheRight(relationArr, index2);
-          
-          // jesli z obu stron cos mamy, to nie mozemy usunac tej relacji
-          // bo zostawimy dziure w ciagu nierownosci
-          if(isOnTheLeft && isOnTheRight)
-            return false;
-          
 
         }
       }
