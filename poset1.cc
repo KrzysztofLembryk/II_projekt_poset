@@ -352,6 +352,25 @@ bool relationGoodToDelete(posetRelationsArray *relationArr, long long const idx1
   return false;
 }
 
+bool checkIfAnythingBetweenTwoElem(posetRelationsArray *relationArr, 
+long long const idx1, long long const idx2)
+{
+  size_t nbrOfRows = relationArr->size();
+  
+  for(size_t i = 0; i < nbrOfRows; i++)
+  {
+    if((relationArr->at(idx1)[i] == RELATION || 
+    relationArr->at(idx1)[i] == RELATION_TRANSITIVITY) && 
+    relationArr->at(i)[idx2] == RELATION ||
+    relationArr->at(i)[idx2] == RELATION_TRANSITIVITY)
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 bool poset_del(unsigned long id, char const *value1, char const *value2)
 {
   if(value1 == nullptr || value2 == nullptr)
@@ -373,6 +392,7 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
     else
     {
       posetRelationsArray *relationArr = iter->second->second;
+
       if (relationArr->at(index1)[index2] == RELATION)
       {
         if (relationGoodToDelete(relationArr, index1, index2))
@@ -407,7 +427,7 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
       posetRelationsArray *p = it->second->second;
 
       // if there is an edge between value1 and value2 (value1 < value2)
-      if (p->at(index1)[index2] == 1)
+      if (p->at(index1)[index2] == RELATION)
         return true;
     }
   }
