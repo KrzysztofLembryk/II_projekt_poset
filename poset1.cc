@@ -31,6 +31,7 @@ unordered_map<identificator, poset_t *> allPosets;
 const int RELATION = 1;
 const int NO_RELATION = -1;
 const int RELATION_TRANSITIVITY = 2;
+const int RELATION_IM_LARGER = 3;
 
 void printVectorOfStrings(vectorOfStrings const &vec)
 {
@@ -61,10 +62,9 @@ void printArrOfRelations(posetRelationsArray const &arr)
 
     for (size_t j = 0; j < columns; j++)
     {
-      if(arr[i][j] != -1)
+      if (arr[i][j] != -1)
         cout << " ";
       cout << arr[i][j] << " ";
-      
     }
 
     cout << "\n";
@@ -173,6 +173,26 @@ bool poset_insert(unsigned long id, char const *value)
   return false;
 }
 
+void deleteRelationsTransitivity(posetRelationsArray *relArr, 
+size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
+{
+  if (relArr->at(currentElem)[idxOfElemToDelete] == RELATION ||
+            relArr->at(currentElem)[idxOfElemToDelete] == RELATION_TRANSITIVITY)
+        {
+          for(size_t j = 0; j < nbrOfRows; j++)
+          {
+            if(relArr->at(idxOfElemToDelete)[j] == RELATION ||
+            relArr->at(idxOfElemToDelete)[j] == RELATION_TRANSITIVITY && 
+            relArr->at(currentElem)[j] == RELATION_TRANSITIVITY)
+            {
+              relArr->at(currentElem)[j] = NO_RELATION;
+            }
+          }
+
+        }
+
+}
+
 bool poset_remove(unsigned long id, char const *value)
 {
   bool elemExists = false;
@@ -184,32 +204,36 @@ bool poset_remove(unsigned long id, char const *value)
     vectorOfStrings *v = iter->second->first;
     size_t vSize = v->size();
 
-    for(size_t i = 0; i < vSize; i++)
+    for (size_t i = 0; i < vSize; i++)
     {
-      if((*v)[i] == value)
+      if ((*v)[i] == value)
       {
         elemExists = true;
         idxOfElem = i;
         break;
-      }   
-    }
-
-    if(elemExists)
-    {
-      posetRelationsArray *relationArr = iter->second->second;
-      
-      (*v).erase((*v).begin() + idxOfElem);
-      relationArr->erase(relationArr->begin() + idxOfElem);
-
-      size_t nbrOfRows = relationArr->size();
-      vector<int> *vec;
-
-      for(size_t i = 0; i < nbrOfRows; i++)
-      {
-        vec = &(relationArr->at(i));
-        vec->erase(vec->begin() + idxOfElem);
       }
+    }
+    if (elemExists)
+    {
+      (*v).erase((*v).begin() + idxOfElem);
+
+      posetRelationsArray *relationArr = iter->second->second;
+      size_t nbrOfRows = relationArr->size();
+      vector<int> *rowVec;
+
+      for (size_t i = 0; i < nbrOfRows; i++)
+      {
+        if(i != idxOfElem)
+        {
+          deleteRelationsTransitivity(relationArr, i, idxOfElem, nbrOfRows);
         
+          rowVec = &(relationArr->at(i));
+          rowVec->erase(rowVec->begin() + idxOfElem);  
+        }
+      }
+
+      
+
       return true;
     }
   }
@@ -217,7 +241,7 @@ bool poset_remove(unsigned long id, char const *value)
 }
 
 void findIndexesOfGivenValues(long long &index1, long long &index2,
-                  char const *value1, char const *value2, vectorOfStrings *v)
+                              char const *value1, char const *value2, vectorOfStrings *v)
 {
   index1 = -1;
   index2 = -1;
@@ -245,31 +269,32 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
     vectorOfStrings *v = it->second->first;
 
     findIndexesOfGivenValues(index1, index2, value1, value2, v);
-  
+
     // there is no element (value1 or value2) in a set
-    if (index1 == -1 || index2 == -1)
+    if (index1 == NO_RELATION || index2 == NO_RELATION)
       return false;
     else
     {
       posetRelationsArray *relationArr = it->second->second;
 
       // if there is an edge between value1 and value2
-      if (relationArr->at(index1)[index2] == 1 || relationArr->at(index2)[index1] == 1)
+      if (relationArr->at(index1)[index2] == RELATION || relationArr->at(index2)[index1] == RELATION)
         return false;
       else
       {
         relationArr->at(index1)[index2] = RELATION; // edge from index1(value1) to index2 (value2)
+        relationArr->at(index2)[index1] = RELATION_IM_LARGER;
 
         // now add edges that will result from transitivity
         size_t nbrOfRows = relationArr->size();
 
         for (index i = 0; i < nbrOfRows; i++)
         {
-          //if (relationArr->at(i)[index1] != -1 && relationArr->at(i)[index2] == -1)
-          //  relationArr->at(i)[index2] = 2;
+          // if (relationArr->at(i)[index1] != -1 && relationArr->at(i)[index2] == -1)
+          //   relationArr->at(i)[index2] = 2;
           if (relationArr->at(i)[index1] == RELATION && relationArr->at(i)[index2] == NO_RELATION)
             relationArr->at(i)[index2] = RELATION_TRANSITIVITY;
-          else if(relationArr->at(i)[index1] == NO_RELATION && relationArr->at(index2)[i] == RELATION)
+          else if (relationArr->at(i)[index1] == NO_RELATION && relationArr->at(index2)[i] == RELATION)
             relationArr->at(index1)[i] = RELATION_TRANSITIVITY;
         }
 
@@ -283,7 +308,6 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
 
 bool relationGoodToDelete(posetRelationsArray *relationArr, long long const idx1, long long const idx2)
 {
-
 }
 
 bool poset_del(unsigned long id, char const *value1, char const *value2)
@@ -297,21 +321,19 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
     vectorOfStrings *v = iter->second->first;
 
     findIndexesOfGivenValues(index1, index2, value1, value2, v);
-  
+
     // there is no element (value1 or value2) in a set
     if (index1 == -1 || index2 == -1)
       return false;
     else
     {
       posetRelationsArray *relationArr = iter->second->second;
-      if(relationArr->at(index1)[index2] == RELATION)
+      if (relationArr->at(index1)[index2] == RELATION)
       {
-        if(relationGoodToDelete(relationArr, index1, index2))
+        if (relationGoodToDelete(relationArr, index1, index2))
         {
-
         }
       }
-
     }
   }
   return false;
@@ -323,21 +345,21 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
 
   if (it != allPosets.end())
   {
-    long long index1; 
+    long long index1;
     long long index2;
     vectorOfStrings *v = it->second->first;
 
     findIndexesOfGivenValues(index1, index2, value1, value2, v);
 
     // there is no element (value1 or value2) in a set
-    if (index1 == NO_RELATION || index2 == NO_RELATION) 
+    if (index1 == NO_RELATION || index2 == NO_RELATION)
       return false;
     else
     {
       posetRelationsArray *p = it->second->second;
 
       // if there is an edge between value1 and value2 (value1 < value2)
-      if (p->at(index1)[index2] == 1) 
+      if (p->at(index1)[index2] == 1)
         return true;
     }
   }
@@ -357,11 +379,7 @@ void poset_clear(unsigned long id)
   }
 }
 
-
-
 // ------------- TESTS -------------
-
-
 
 void TEST_poset_new_delete_insert_add()
 {
@@ -423,7 +441,6 @@ void initPoset(long long &id1, long long &id2)
   assert(poset_insert(id2, "C") == true && "insert into id2 poset was not succesful\n");
   assert(poset_insert(id2, "X") == true && "insert into id2 poset was not succesful\n");
   assert(poset_insert(id2, "Y") == true && "insert into id2 poset was not succesful\n");
-
 }
 
 void TEST_poset_add_remove()
@@ -436,12 +453,14 @@ void TEST_poset_add_remove()
   assert(poset_add(id2, "A", "C") == true);
   assert(poset_add(id2, "A", "B") == false);
 
-  cout << "1) Relations added: A<B, A<C, A<B: " << "\n\n";
+  cout << "1) Relations added: A<B, A<C, A<B: "
+       << "\n\n";
   printPoset(allPosets[id2]);
 
   assert(poset_add(id2, "B", "C") == true);
 
-  cout << "2) Relations added B<C: " << "\n\n";
+  cout << "2) Relations added B<C: "
+       << "\n\n";
   printPoset(allPosets[id2]);
 
   cout << "\nposet_remove(A):\n";
