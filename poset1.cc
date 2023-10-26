@@ -160,9 +160,30 @@ bool poset_insert(unsigned long id, char const *value)
 
 bool poset_remove(unsigned long id, char const *value)
 {
+  bool elemExists = false;
+  size_t idxOfElem;
   auto iter = allPosets.find(id);
+
   if (iter != allPosets.end())
   {
+    vectorOfStrings *v = iter->second->first;
+    size_t vSize = v->size();
+
+    for(size_t i = 0; i < vSize; i++)
+    {
+      if((*v)[i] == value)
+      {
+        elemExists = true;
+        idxOfElem = i;
+        break;
+      }   
+    }
+
+    if(elemExists)
+    {
+      (*v).erase((*v).begin() + idxOfElem);
+
+    }
   }
   return false;
 }
@@ -212,12 +233,16 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
         relationArr->at(index1)[index2] = 1; // edge from index1(value1) to index2 (value2)
 
         // now add edges that will result from transitivity
-        size_t arrSize = relationArr->size();
+        size_t nbrOfRows = relationArr->size();
 
-        for (index i = 0; i < arrSize; i++)
+        for (index i = 0; i < nbrOfRows; i++)
         {
-          if (relationArr->at(i)[index1] != -1 && relationArr->at(i)[index2] == -1)
+          //if (relationArr->at(i)[index1] != -1 && relationArr->at(i)[index2] == -1)
+          //  relationArr->at(i)[index2] = 2;
+          if (relationArr->at(i)[index1] == 1 && relationArr->at(i)[index2] == -1)
             relationArr->at(i)[index2] = 2;
+          else if(relationArr->at(i)[index1] == -1 && relationArr->at(index2)[i] == 1)
+            relationArr->at(index1)[i] = 2;
         }
 
         return true;
