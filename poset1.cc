@@ -99,9 +99,6 @@ unsigned long poset_new(void)
   return id;
 }
 
-
-
-
 void poset_delete(unsigned long id)
 {
   auto it = allPosets.find(id);
@@ -141,7 +138,7 @@ bool poset_insert(unsigned long id, char const *value)
       if (str == value)
         return false;
     }
-    
+
     poset_elem elemToAdd(value);
     v->push_back(elemToAdd);
 
@@ -149,7 +146,7 @@ bool poset_insert(unsigned long id, char const *value)
 
     // dodanie nowego wiersza wypelnionego -1
     // -1 oznacza brak relacji
-    p->push_back(vector<int>(p->size(), -1)); 
+    p->push_back(vector<int>(p->size(), -1));
 
     // dodanie nowej kolumny
     for (vector<int> &row : *p)
@@ -164,11 +161,28 @@ bool poset_insert(unsigned long id, char const *value)
 bool poset_remove(unsigned long id, char const *value)
 {
   auto iter = allPosets.find(id);
-  if(iter != allPosets.end())
+  if (iter != allPosets.end())
   {
-
   }
   return false;
+}
+
+void findIndexesOfGivenValues(long long &index1, long long &index2,
+                  char const *value1, char const *value2, vectorOfStrings *v)
+{
+  index1 = -1;
+  index2 = -1;
+  size_t vSize = v->size();
+
+  for (index i = 0; i < vSize; i++)
+  {
+    if (v->at(i) == value1)
+      index1 = i;
+    if (v->at(i) == value2)
+      index2 = i;
+    if (index1 != -1 && index2 != -1)
+      break;
+  }
 }
 
 bool poset_add(unsigned long id, char const *value1, char const *value2)
@@ -177,38 +191,30 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
 
   if (it != allPosets.end())
   {
-    long long index1 = -1;
-    long long index2 = -1;
+    long long index1;
+    long long index2;
     vectorOfStrings *v = it->second->first;
 
-    for (index i = 0; i < v->size(); i++) 
-    {
-      if (v->at(i) == value1) 
-        index1 = i;
-      if (v->at(i) == value2)
-        index2 = i;
-      if(index1 != -1 && index2 != -1)
-        break;
-    }
-
-    //there is no element (value1 or value2) in a set
-    if (index1 == -1 || index2 == -1) 
+    findIndexesOfGivenValues(index1, index2, value1, value2, v);
+  
+    // there is no element (value1 or value2) in a set
+    if (index1 == -1 || index2 == -1)
       return false;
     else
     {
       posetRelationsArray *relationArr = it->second->second;
 
-      //if there is an edge between value1 and value2
-      if (relationArr->at(index1)[index2] == 1 || relationArr->at(index2)[index1] == 1) 
+      // if there is an edge between value1 and value2
+      if (relationArr->at(index1)[index2] == 1 || relationArr->at(index2)[index1] == 1)
         return false;
       else
       {
-        relationArr->at(index1)[index2] = 1; //edge from index1(value1) to index2 (value2)
+        relationArr->at(index1)[index2] = 1; // edge from index1(value1) to index2 (value2)
 
-        //now add edges that will result from transitivity
+        // now add edges that will result from transitivity
         size_t arrSize = relationArr->size();
 
-        for (index i = 0; i < arrSize; i++) 
+        for (index i = 0; i < arrSize; i++)
         {
           if (relationArr->at(i)[index1] != -1 && relationArr->at(i)[index2] == -1)
             relationArr->at(i)[index2] = 2;
@@ -229,33 +235,22 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
   auto it = allPosets.find(id);
   if (it != allPosets.end())
   {
-    long long index1 = -1; //hadnt any better idea how to do it
-    long long index2 = -1;
+    long long index1; 
+    long long index2;
     vectorOfStrings *v = it->second->first;
-    for (index i = 0; i < v->size(); i++) 
-    {
-      if (v->at(i) == value1) 
-      {
-        index1 = i;
-      }
-      if (v->at(i) == value2)
-      {
-        index2 = i;
-      }
-    }
 
-    if (index1 == -1 || index2 == -1) //there is no element (value1 or value2) in a set
-    {
+    findIndexesOfGivenValues(index1, index2, value1, value2, v);
+
+    // there is no element (value1 or value2) in a set
+    if (index1 == -1 || index2 == -1) 
       return false;
-    }
-     else
+    else
     {
       posetRelationsArray *p = it->second->second;
 
-      if (p->at(index1)[index2] == 1) //if there is an edge between value1 and value2 (value1 < value2)
-      {
+      // if there is an edge between value1 and value2 (value1 < value2)
+      if (p->at(index1)[index2] == 1) 
         return true;
-      }
     }
   }
 
@@ -273,8 +268,6 @@ void poset_clear(unsigned long id)
     p->clear();
   }
 }
-
-
 
 // ------------- TESTS -------------
 
@@ -314,8 +307,6 @@ void TEST_poset_new_delete_insert_add()
   printArrOfRelations(*allPosets[id2]->second);
 }
 
-
-
 void test()
 {
   poset_t *newPoset = new poset_t;
@@ -339,12 +330,11 @@ void test()
 
   printVectorOfStrings(*(allPosets[0]->first));
   printArrOfRelations(*arr);
-
 }
 
 int main()
 {
-  
+
   TEST_poset_new_delete_insert_add();
 
   return 0;
