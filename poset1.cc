@@ -25,7 +25,7 @@ using posetRelationsArray = vector<vector<int>>;
 
 using identificator = unsigned long;
 
-using poset_t = pair<posetRelationsArray*, vectorOfStrings*>;
+using poset_t = pair<vectorOfStrings*, posetRelationsArray*>;
 
 
 unordered_map<identificator, poset_t*> allPosets;
@@ -58,8 +58,8 @@ unsigned long poset_new(void)
   vectorOfStrings *newVecOfPosetElem = new vectorOfStrings;
   posetRelationsArray *newP = new posetRelationsArray;
 
-  newPoset->first = newP;
-  newPoset->second = newVecOfPosetElem;
+  newPoset->first = newVecOfPosetElem;
+  newPoset->second = newP;
 
   allPosets.insert({id, newPoset});
 
@@ -77,11 +77,15 @@ void poset_delete(unsigned long id)
 size_t poset_size(unsigned long id)
 {
   auto it = allPosets.find(id);
+
   if (it != allPosets.end())
   {
-    vectorOfStrings *v = it->second->second;
+    // poset_t = pair<vectorOfStrings*, posetRelationsArray*>;
+    // it->first = id, it->second = pair
+    vectorOfStrings *v = it->second->first;
     return v->size();
   }
+
   return 0;
 }
 
@@ -90,7 +94,7 @@ bool poset_insert(unsigned long id, char const *value)
   auto it = allPosets.find(id);
   if (it != allPosets.end()) 
   {
-    vectorOfStrings *v = it->second->second;
+    vectorOfStrings *v = it->second->first;
     for (const poset_elem& str : *v)
     {
       if (str == value) 
@@ -101,7 +105,7 @@ bool poset_insert(unsigned long id, char const *value)
     v->push_back(value);
 
 
-    posetRelationsArray *p = it->second->first;
+    posetRelationsArray *p = it->second->second;
     p->push_back(vector<int>(p->size(), -1)); //dodanie nowego wiersza wypelnionego -1
 
     //dodanie nowej kolumny
@@ -128,8 +132,8 @@ void poset_clear(unsigned long id);
 
 void Test_insert() 
 {
-  vectorOfStrings *v = allPosets[0]->second;
-  posetRelationsArray *p = allPosets[0]->first;
+  vectorOfStrings *v = allPosets[0]->first;
+  posetRelationsArray *p = allPosets[0]->second;
 
   for (const poset_elem& str : *v)
   {
