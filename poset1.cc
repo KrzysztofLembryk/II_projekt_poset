@@ -281,11 +281,46 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
   return false;
 };
 
-bool poset_del(unsigned long id, char const *value1, char const *value2);
+bool relationGoodToDelete(posetRelationsArray *relationArr, long long const idx1, long long const idx2)
+{
+
+}
+
+bool poset_del(unsigned long id, char const *value1, char const *value2)
+{
+  auto iter = allPosets.find(id);
+
+  if (iter != allPosets.end())
+  {
+    long long index1;
+    long long index2;
+    vectorOfStrings *v = iter->second->first;
+
+    findIndexesOfGivenValues(index1, index2, value1, value2, v);
+  
+    // there is no element (value1 or value2) in a set
+    if (index1 == -1 || index2 == -1)
+      return false;
+    else
+    {
+      posetRelationsArray *relationArr = iter->second->second;
+      if(relationArr->at(index1)[index2] == RELATION)
+      {
+        if(relationGoodToDelete(relationArr, index1, index2))
+        {
+
+        }
+      }
+
+    }
+  }
+  return false;
+}
 
 bool poset_test(unsigned long id, char const *value1, char const *value2)
 {
   auto it = allPosets.find(id);
+
   if (it != allPosets.end())
   {
     long long index1; 
@@ -295,7 +330,7 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
     findIndexesOfGivenValues(index1, index2, value1, value2, v);
 
     // there is no element (value1 or value2) in a set
-    if (index1 == -1 || index2 == -1) 
+    if (index1 == NO_RELATION || index2 == NO_RELATION) 
       return false;
     else
     {
@@ -322,7 +357,11 @@ void poset_clear(unsigned long id)
   }
 }
 
+
+
 // ------------- TESTS -------------
+
+
 
 void TEST_poset_new_delete_insert_add()
 {
@@ -411,6 +450,7 @@ void TEST_poset_add_remove()
   assert(allPosets[id2]->first->size() == nbrOfPosetElem_id2 - 1 && "Removal of element of poset in vec of elems didnt work\n");
   assert(allPosets[id2]->second->size() == nbrOfPosetElem_id2 - 1 && "Removal of whole row didnt work\n");
   assert(allPosets[id2]->second->at(0).size() == nbrOfPosetElem_id2 - 1 && "Removal of whole column didnt work\n");
+  assert(poset_remove(id2, "A") == false);
 
   cout << "3) printing poset after removal:\n";
   printPoset(allPosets[id2]);
