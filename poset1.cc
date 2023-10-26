@@ -202,12 +202,12 @@ bool poset_remove(unsigned long id, char const *value)
       relationArr->erase(relationArr->begin() + idxOfElem);
 
       size_t nbrOfRows = relationArr->size();
-      vector<int> vec;
+      vector<int> *vec;
 
       for(size_t i = 0; i < nbrOfRows; i++)
       {
-        vec = relationArr->at(i);
-        vec.erase(vec.begin() + idxOfElem);
+        vec = &(relationArr->at(i));
+        vec->erase(vec->begin() + idxOfElem);
       }
         
       return true;
@@ -345,11 +345,17 @@ void TEST_poset_new_delete_insert_add()
 
   assert(poset_insert(id1, "xd") == false && "poset id1 does not exist, but inserting was a success - WRONG\n");
 
+  size_t posetID2_size = 0;
+
   assert(poset_insert(id2, "A") == true && "insert into id2 poset was not succesful\n");
+  assert(allPosets[id2]->first->size() == ++posetID2_size && "insert success, but num of elem not increased\n");
   assert(poset_insert(id2, "X") == true && "insert into id2 poset was not succesful\n");
   assert(poset_insert(id2, "Y") == true && "insert into id2 poset was not succesful\n");
 
-  assert(poset_insert(id3, "B") == true && "insert into id3 poset was not succesful\n");
+  posetID2_size += 2;
+
+  assert(poset_insert(id2, "Z") == true && "insert into id2 poset was not succesful\n");
+  assert(allPosets[id2]->first->size() == (++posetID2_size) && "insert success, but num of elem not increased");
 
   cout << "ADD SECTION TEST: \n";
 
@@ -385,24 +391,26 @@ void TEST_poset_add_remove()
 {
   long long id1, id2;
   initPoset(id1, id2);
+  int nbrOfPosetElem_id2 = allPosets[id2]->first->size();
 
   assert(poset_add(id2, "A", "B") == true);
   assert(poset_add(id2, "A", "C") == true);
   assert(poset_add(id2, "A", "B") == false);
 
-  cout << "1) Relations added: A<B, A<C, A<B: " << id2 << "\n\n";
+  cout << "1) Relations added: A<B, A<C, A<B: " << "\n\n";
   printPoset(allPosets[id2]);
 
   assert(poset_add(id2, "B", "C") == true);
 
-  cout << "2) Relations added B<C: " << id2 << "\n\n";
+  cout << "2) Relations added B<C: " << "\n\n";
   printPoset(allPosets[id2]);
 
   cout << "\nposet_remove(A):\n";
 
   assert(poset_remove(id2, "A") == true);
-  assert(allPosets[id2]->second->size() == 4 && "Removal of whole row didnt work\n");
-  assert(allPosets[id2]->second->at(0).size() == 4 && "Removal of whole column didnt work\n");
+  assert(allPosets[id2]->first->size() == nbrOfPosetElem_id2 - 1 && "Removal of element of poset in vec of elems didnt work\n");
+  assert(allPosets[id2]->second->size() == nbrOfPosetElem_id2 - 1 && "Removal of whole row didnt work\n");
+  assert(allPosets[id2]->second->at(0).size() == nbrOfPosetElem_id2 - 1 && "Removal of whole column didnt work\n");
 
   cout << "3) printing poset after removal:\n";
   printPoset(allPosets[id2]);
@@ -438,5 +446,6 @@ int main()
 
   TEST_poset_new_delete_insert_add();
   TEST_poset_add_remove();
+
   return 0;
 }
