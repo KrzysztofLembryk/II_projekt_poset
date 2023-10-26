@@ -28,6 +28,11 @@ using poset_t = pair<vectorOfStrings *, posetRelationsArray *>;
 
 unordered_map<identificator, poset_t *> allPosets;
 
+const int RELATION = 1;
+const int NO_RELATION = -1;
+const int RELATION_TRANSITIVITY = 2;
+const int RELATION_IM_LARGER = 3;
+
 void printVectorOfStrings(vectorOfStrings const &vec)
 {
   size_t n = vec.size();
@@ -44,10 +49,10 @@ void printArrOfRelations(posetRelationsArray const &arr)
   size_t columns = arr[0].size();
 
   cout << "Array of relations: \n";
-  cout << "  ";
+  cout << "   ";
 
   for (size_t i = 0; i < columns; i++)
-    cout << i << " ";
+    cout << i << "  ";
 
   cout << "\n";
 
@@ -56,10 +61,20 @@ void printArrOfRelations(posetRelationsArray const &arr)
     cout << i << " ";
 
     for (size_t j = 0; j < columns; j++)
+    {
+      if (arr[i][j] != -1)
+        cout << " ";
       cout << arr[i][j] << " ";
+    }
 
     cout << "\n";
   }
+}
+
+void printPoset(poset_t const *p)
+{
+  printVectorOfStrings(*(p->first));
+  printArrOfRelations(*(p->second));
 }
 
 // tylko zeby bylo teraz, przypisuje id zawsze o 1 wiekszy od najwyzszego id.
@@ -158,17 +173,99 @@ bool poset_insert(unsigned long id, char const *value)
   return false;
 }
 
+void deleteRelationsTransitivity(posetRelationsArray *relArr, 
+size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
+{
+  if (relArr->at(currentElem)[idxOfElemToDelete] == RELATION ||
+          relArr->at(currentElem)[idxOfElemToDelete] == RELATION_TRANSITIVITY)
+        {
+          for(size_t j = 0; j < nbrOfRows; j++)
+          {
+            if((relArr->at(idxOfElemToDelete)[j] == RELATION ||
+            relArr->at(idxOfElemToDelete)[j] == RELATION_TRANSITIVITY) && 
+            relArr->at(currentElem)[j] == RELATION_TRANSITIVITY)
+            {
+              relArr->at(currentElem)[j] = NO_RELATION;
+              relArr->at(j)[currentElem] = NO_RELATION;
+            }
+          }
+        }
+}
+
+void deleteRelationsLarger(posetRelationsArray *relArr, 
+size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
+{
+  if (relArr->at(currentElem)[idxOfElemToDelete] == RELATION_IM_LARGER)
+  {
+    for(size_t j = 0; j < nbrOfRows; j++)
+    {
+      if(relArr->at(idxOfElemToDelete)[j] == RELATION_IM_LARGER &&
+      relArr->at(j)[currentElem] == RELATION_TRANSITIVITY)
+      {
+        relArr->at(j)[currentElem] = NO_RELATION;
+        relArr->at(currentElem)[j] = NO_RELATION;
+      }
+    }
+  }
+}
+
+void checkIfElemExistInVecOfStr(vectorOfStrings *v, char const *value, 
+size_t &idx, bool &exist)
+{
+  size_t vSize = v->size();
+  for (size_t i = 0; i < vSize; i++)
+    {
+      if ((*v)[i] == value)
+      {
+        exist = true;
+        idx = i;
+        break;
+      }
+    }
+}
+
 bool poset_remove(unsigned long id, char const *value)
 {
+  bool elemExists = false;
+  size_t idxOfElem;
   auto iter = allPosets.find(id);
+
   if (iter != allPosets.end())
   {
+    vectorOfStrings *v = iter->second->first;
+
+    checkIfElemExistInVecOfStr(v, value, idxOfElem, elemExists);  
+
+    if (elemExists)
+    {
+      (*v).erase((*v).begin() + idxOfElem);
+
+      posetRelationsArray *relationArr = iter->second->second;
+      size_t nbrOfRows = relationArr->size();
+      vector<int> *rowVec;
+
+      for (size_t i = 0; i < nbrOfRows; i++)
+      {
+        if(i != idxOfElem)
+        {
+          deleteRelationsTransitivity(relationArr, i, idxOfElem, nbrOfRows);
+          deleteRelationsLarger(relationArr, i, idxOfElem, nbrOfRows);
+        
+          rowVec = &(relationArr->at(i));
+          rowVec->erase(rowVec->begin() + idxOfElem);  
+        }
+      }
+
+      relationArr->erase(relationArr->begin() + idxOfElem);
+      
+      return true;
+    }
   }
   return false;
 }
 
 void findIndexesOfGivenValues(long long &index1, long long &index2,
-                  char const *value1, char const *value2, vectorOfStrings *v)
+                              char const *value1, char const *value2, vectorOfStrings *v)
 {
   index1 = -1;
   index2 = -1;
@@ -196,28 +293,40 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
     vectorOfStrings *v = it->second->first;
 
     findIndexesOfGivenValues(index1, index2, value1, value2, v);
-  
+
     // there is no element (value1 or value2) in a set
-    if (index1 == -1 || index2 == -1)
+    if (index1 == NO_RELATION || index2 == NO_RELATION)
       return false;
     else
     {
       posetRelationsArray *relationArr = it->second->second;
 
       // if there is an edge between value1 and value2
-      if (relationArr->at(index1)[index2] == 1 || relationArr->at(index2)[index1] == 1)
+      if (relationArr->at(index1)[index2] == RELATION || relationArr->at(index2)[index1] == RELATION)
         return false;
       else
       {
-        relationArr->at(index1)[index2] = 1; // edge from index1(value1) to index2 (value2)
+        relationArr->at(index1)[index2] = RELATION; // edge from index1(value1) to index2 (value2)
+        relationArr->at(index2)[index1] = RELATION_IM_LARGER;
 
         // now add edges that will result from transitivity
-        size_t arrSize = relationArr->size();
+        size_t nbrOfRows = relationArr->size();
 
-        for (index i = 0; i < arrSize; i++)
+        for (index i = 0; i < nbrOfRows; i++)
         {
-          if (relationArr->at(i)[index1] != -1 && relationArr->at(i)[index2] == -1)
-            relationArr->at(i)[index2] = 2;
+          // if (relationArr->at(i)[index1] != -1 && relationArr->at(i)[index2] == -1)
+          //   relationArr->at(i)[index2] = 2;
+          if (relationArr->at(i)[index1] == RELATION && relationArr->at(i)[index2] == NO_RELATION)
+          {
+            relationArr->at(i)[index2] = RELATION_TRANSITIVITY;
+            relationArr->at(index2)[i] = RELATION_IM_LARGER;
+          }
+            
+          else if (relationArr->at(i)[index1] == NO_RELATION && relationArr->at(index2)[i] == RELATION)
+          {
+            relationArr->at(index1)[i] = RELATION_TRANSITIVITY;
+            relationArr->at(i)[index1] = RELATION_IM_LARGER;
+          }
         }
 
         return true;
@@ -228,28 +337,62 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
   return false;
 };
 
-bool poset_del(unsigned long id, char const *value1, char const *value2);
+bool relationGoodToDelete(posetRelationsArray *relationArr, long long const idx1, long long const idx2)
+{
+
+  return false;
+}
+
+bool poset_del(unsigned long id, char const *value1, char const *value2)
+{
+  auto iter = allPosets.find(id);
+
+  if (iter != allPosets.end())
+  {
+    long long index1;
+    long long index2;
+    vectorOfStrings *v = iter->second->first;
+
+    findIndexesOfGivenValues(index1, index2, value1, value2, v);
+
+    // there is no element (value1 or value2) in a set
+    if (index1 == -1 || index2 == -1)
+      return false;
+    else
+    {
+      posetRelationsArray *relationArr = iter->second->second;
+      if (relationArr->at(index1)[index2] == RELATION)
+      {
+        if (relationGoodToDelete(relationArr, index1, index2))
+        {
+        }
+      }
+    }
+  }
+  return false;
+}
 
 bool poset_test(unsigned long id, char const *value1, char const *value2)
 {
   auto it = allPosets.find(id);
+
   if (it != allPosets.end())
   {
-    long long index1; 
+    long long index1;
     long long index2;
     vectorOfStrings *v = it->second->first;
 
     findIndexesOfGivenValues(index1, index2, value1, value2, v);
 
     // there is no element (value1 or value2) in a set
-    if (index1 == -1 || index2 == -1) 
+    if (index1 == NO_RELATION || index2 == NO_RELATION)
       return false;
     else
     {
       posetRelationsArray *p = it->second->second;
 
       // if there is an edge between value1 and value2 (value1 < value2)
-      if (p->at(index1)[index2] == 1) 
+      if (p->at(index1)[index2] == 1)
         return true;
     }
   }
@@ -271,6 +414,24 @@ void poset_clear(unsigned long id)
 
 // ------------- TESTS -------------
 
+int getValOfTwoElemRelation(const char *val1, const char *val2, poset_t const *p)
+{
+  vectorOfStrings *v = p->first;
+  long long idx1, idx2;
+  
+  findIndexesOfGivenValues(idx1, idx2, val1, val2, v);
+  if(idx1 == -1 || idx2 == -1)
+    return 2137;
+  
+  return p->second->at(idx1)[idx2];
+
+  //checkIfElemExistInVecOfStr(v, var, idx, exist);
+  //if(exist)
+  //  return p->second->at(idx)[id];
+  
+  
+}
+
 void TEST_poset_new_delete_insert_add()
 {
   cout << "----- TEST_poset_new_delete_insert -----\n";
@@ -291,20 +452,147 @@ void TEST_poset_new_delete_insert_add()
   cout << "INSERT SECTION TEST: \n";
 
   assert(poset_insert(id1, "xd") == false && "poset id1 does not exist, but inserting was a success - WRONG\n");
+
+  size_t posetID2_size = 0;
+
   assert(poset_insert(id2, "A") == true && "insert into id2 poset was not succesful\n");
+  assert(allPosets[id2]->first->size() == ++posetID2_size && "insert success, but num of elem not increased\n");
   assert(poset_insert(id2, "X") == true && "insert into id2 poset was not succesful\n");
-  assert(poset_insert(id3, "B") == true && "insert into id3 poset was not succesful\n");
+  assert(poset_insert(id2, "Y") == true && "insert into id2 poset was not succesful\n");
+
+  posetID2_size += 2;
+
+  assert(poset_insert(id2, "Z") == true && "insert into id2 poset was not succesful\n");
+  assert(allPosets[id2]->first->size() == (++posetID2_size) && "insert success, but num of elem not increased");
 
   cout << "ADD SECTION TEST: \n";
 
   assert(poset_add(id2, "A", "B") == false);
   assert(poset_add(id2, "A", "X") == true);
+  assert(poset_add(id2, "X", "A") == false);
+  assert(poset_add(id2, "X", "Y") == true);
 
   cout << "TESTS PASSED\n\n";
   cout << "printing id2=" << id2 << " poset: \n\n";
 
   printVectorOfStrings(*allPosets[id2]->first);
   printArrOfRelations(*allPosets[id2]->second);
+}
+
+void initPoset(long long &id1, long long &id2)
+{
+  id1 = poset_new();
+  id2 = poset_new();
+
+  assert(poset_insert(id1, "xd") == true);
+  assert(poset_insert(id1, "ALA") == true);
+
+  assert(poset_insert(id2, "A") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "B") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "C") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "X") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "Y") == true && "insert into id2 poset was not succesful\n");
+}
+
+void TEST_poset_add_remove()
+{
+  long long id1, id2;
+  initPoset(id1, id2);
+  int nbrOfPosetElem_id2 = allPosets[id2]->first->size();
+
+  assert(poset_add(id2, "A", "B") == true);
+  assert(poset_add(id2, "A", "C") == true);
+  assert(poset_add(id2, "A", "B") == false);
+
+  cout << "1) Relations added: A<B, A<C, A<B: "
+       << "\n\n";
+  printPoset(allPosets[id2]);
+
+  assert(poset_add(id2, "B", "C") == true);
+
+  cout << "2) Relations added B<C: "
+       << "\n\n";
+  printPoset(allPosets[id2]);
+
+  cout << "\nposet_remove(A):\n";
+
+  assert(poset_remove(id2, "A") == true);
+  assert(allPosets[id2]->first->size() == nbrOfPosetElem_id2 - 1 && "Removal of element of poset in vec of elems didnt work\n");
+  assert(allPosets[id2]->second->size() == nbrOfPosetElem_id2 - 1 && "Removal of whole row didnt work\n");
+  assert(allPosets[id2]->second->at(0).size() == nbrOfPosetElem_id2 - 1 && "Removal of whole column didnt work\n");
+  assert(poset_remove(id2, "A") == false);
+
+  cout << "3) printing poset after removal:\n";
+  printPoset(allPosets[id2]);
+}
+
+void DETAILED_TEST_poset_remove()
+{
+  long long id2 = poset_new();
+
+  assert(poset_insert(id2, "A") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "B") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "C") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "X") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "Y") == true && "insert into id2 poset was not succesful\n");
+
+  /** A < B < C, A < X, Y < X
+   *    A  B  C  X  Y
+   *   ----------------
+   * 0| 1  1  2  1 -1 
+   * 1| 3  1  1 -1 -1
+   * 2| 3  3  1 -1 -1
+   * 3| 3 -1 -1  1  3
+   * 4|-1 -1 -1  1  1
+  */
+  
+  assert(poset_add(id2, "A", "B") == true);
+  assert(poset_add(id2, "B", "C") == true);
+  assert(poset_add(id2, "A", "X") == true);
+  assert(poset_add(id2, "Y", "X") == true);
+
+  cout << "relations: A < B < C, A < X, Y < X \n\n";
+  printPoset(allPosets[id2]);
+
+  // we remove B from poset
+  assert(poset_remove(id2, "B") == true);
+  printPoset(allPosets[id2]);
+
+  // we should get
+  /** A , C, A < X, Y < X
+  *    A  C  X  Y
+  *   ----------------
+  * A| 1 -1  1 -1 
+  * C|-1  1 -1 -1
+  * X| 3 -1  1  3
+  * Y|-1 -1  1  1
+  */
+  assert(getValOfTwoElemRelation("A", "X", allPosets[id2]) == 1);
+  assert(getValOfTwoElemRelation("A", "C", allPosets[id2]) == -1);
+  assert(getValOfTwoElemRelation("C", "A", allPosets[id2]) == -1);
+
+  assert(poset_add(id2, "X", "C") == true);
+
+  printPoset(allPosets[id2]);
+  // we should get
+  /** A < X < C, Y < X < C
+  *    A  C  X  Y
+  *   ----------------
+  * A| 1  2  1 -1 
+  * C| 3  1  3  3
+  * X| 3  1  1  3
+  * Y|-1  2  1  1
+  */
+
+  // C
+  assert(getValOfTwoElemRelation("C", "A", allPosets[id2]) == 3);
+  assert(getValOfTwoElemRelation("C", "X", allPosets[id2]) == 3);
+  assert(getValOfTwoElemRelation("C", "Y", allPosets[id2]) == 3);
+  // X
+  assert(getValOfTwoElemRelation("X", "A", allPosets[id2]) == 3);
+  assert(getValOfTwoElemRelation("X", "C", allPosets[id2]) == 1);
+  assert(getValOfTwoElemRelation("X", "Y", allPosets[id2]) == 3);
+
 }
 
 void test()
@@ -336,6 +624,8 @@ int main()
 {
 
   TEST_poset_new_delete_insert_add();
+  TEST_poset_add_remove();
+  DETAILED_TEST_poset_remove();
 
   return 0;
 }
