@@ -623,8 +623,8 @@ void test()
 int main()
 {
 
-  //TEST_poset_new_delete_insert_add();
-  //TEST_poset_add_remove();
+  TEST_poset_new_delete_insert_add();
+  TEST_poset_add_remove();
   DETAILED_TEST_poset_remove();
 
   return 0;
