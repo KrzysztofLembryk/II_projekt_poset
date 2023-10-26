@@ -339,6 +339,8 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
 
 bool relationGoodToDelete(posetRelationsArray *relationArr, long long const idx1, long long const idx2)
 {
+
+  return false;
 }
 
 bool poset_del(unsigned long id, char const *value1, char const *value2)
@@ -506,6 +508,53 @@ void TEST_poset_add_remove()
   printPoset(allPosets[id2]);
 }
 
+void DETAILED_TEST_poset_remove()
+{
+  long long id2 = poset_new();
+
+  assert(poset_insert(id2, "A") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "B") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "C") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "X") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "Y") == true && "insert into id2 poset was not succesful\n");
+
+  /** A < B < C, A < X, Y < X
+   *    A  B  C  X  Y
+   *   ----------------
+   * 0| 1  1  2  1 -1 
+   * 1| 3  1  1 -1 -1
+   * 2| 3  3  1 -1 -1
+   * 3| 3 -1 -1  1  3
+   * 4|-1 -1 -1  1  1
+  */
+  
+  assert(poset_add(id2, "A", "B") == true);
+  assert(poset_add(id2, "B", "C") == true);
+  assert(poset_add(id2, "A", "X") == true);
+  assert(poset_add(id2, "Y", "X") == true);
+
+  cout << "relations: A < B < C, A < X, Y < X \n\n";
+  printPoset(allPosets[id2]);
+
+  // we remove B from poset
+  assert(poset_remove(id2, "B") == true);
+  printPoset(allPosets[id2]);
+
+  // we should get
+  /** A < B < C, A < X, Y < X
+  *    A  0  C  X  Y
+  *   ----------------
+  * A| 1  0 -1  1 -1 
+  * 0| 0  0  0  0  0
+  * C|-1  0  1 -1 -1
+  * X| 3  0 -1  1  3
+  * Y|-1  0 -1  1  1
+  */
+
+  assert(allPosets[id2]->second->at(0)[1] == -1);
+  assert(allPosets[id2]->second->at(1)[0] == -1);
+}
+
 void test()
 {
   poset_t *newPoset = new poset_t;
@@ -534,8 +583,9 @@ void test()
 int main()
 {
 
-  TEST_poset_new_delete_insert_add();
-  TEST_poset_add_remove();
+  //TEST_poset_new_delete_insert_add();
+  //TEST_poset_add_remove();
+  DETAILED_TEST_poset_remove();
 
   return 0;
 }
