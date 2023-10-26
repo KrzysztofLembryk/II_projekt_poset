@@ -28,6 +28,10 @@ using poset_t = pair<vectorOfStrings *, posetRelationsArray *>;
 
 unordered_map<identificator, poset_t *> allPosets;
 
+const int RELATION = 1;
+const int NO_RELATION = -1;
+const int RELATION_TRANSITIVITY = 2;
+
 void printVectorOfStrings(vectorOfStrings const &vec)
 {
   size_t n = vec.size();
@@ -44,10 +48,10 @@ void printArrOfRelations(posetRelationsArray const &arr)
   size_t columns = arr[0].size();
 
   cout << "Array of relations: \n";
-  cout << "  ";
+  cout << "   ";
 
   for (size_t i = 0; i < columns; i++)
-    cout << i << " ";
+    cout << i << "  ";
 
   cout << "\n";
 
@@ -56,10 +60,21 @@ void printArrOfRelations(posetRelationsArray const &arr)
     cout << i << " ";
 
     for (size_t j = 0; j < columns; j++)
+    {
+      if(arr[i][j] != -1)
+        cout << " ";
       cout << arr[i][j] << " ";
+      
+    }
 
     cout << "\n";
   }
+}
+
+void printPoset(poset_t const *p)
+{
+  printVectorOfStrings(*(p->first));
+  printArrOfRelations(*(p->second));
 }
 
 // tylko zeby bylo teraz, przypisuje id zawsze o 1 wiekszy od najwyzszego id.
@@ -243,7 +258,7 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
         return false;
       else
       {
-        relationArr->at(index1)[index2] = 1; // edge from index1(value1) to index2 (value2)
+        relationArr->at(index1)[index2] = RELATION; // edge from index1(value1) to index2 (value2)
 
         // now add edges that will result from transitivity
         size_t nbrOfRows = relationArr->size();
@@ -252,10 +267,10 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
         {
           //if (relationArr->at(i)[index1] != -1 && relationArr->at(i)[index2] == -1)
           //  relationArr->at(i)[index2] = 2;
-          if (relationArr->at(i)[index1] == 1 && relationArr->at(i)[index2] == -1)
-            relationArr->at(i)[index2] = 2;
-          else if(relationArr->at(i)[index1] == -1 && relationArr->at(index2)[i] == 1)
-            relationArr->at(index1)[i] = 2;
+          if (relationArr->at(i)[index1] == RELATION && relationArr->at(i)[index2] == NO_RELATION)
+            relationArr->at(i)[index2] = RELATION_TRANSITIVITY;
+          else if(relationArr->at(i)[index1] == NO_RELATION && relationArr->at(index2)[i] == RELATION)
+            relationArr->at(index1)[i] = RELATION_TRANSITIVITY;
         }
 
         return true;
@@ -329,20 +344,68 @@ void TEST_poset_new_delete_insert_add()
   cout << "INSERT SECTION TEST: \n";
 
   assert(poset_insert(id1, "xd") == false && "poset id1 does not exist, but inserting was a success - WRONG\n");
+
   assert(poset_insert(id2, "A") == true && "insert into id2 poset was not succesful\n");
   assert(poset_insert(id2, "X") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "Y") == true && "insert into id2 poset was not succesful\n");
+
   assert(poset_insert(id3, "B") == true && "insert into id3 poset was not succesful\n");
 
   cout << "ADD SECTION TEST: \n";
 
   assert(poset_add(id2, "A", "B") == false);
   assert(poset_add(id2, "A", "X") == true);
+  assert(poset_add(id2, "X", "A") == false);
+  assert(poset_add(id2, "X", "Y") == true);
 
   cout << "TESTS PASSED\n\n";
   cout << "printing id2=" << id2 << " poset: \n\n";
 
   printVectorOfStrings(*allPosets[id2]->first);
   printArrOfRelations(*allPosets[id2]->second);
+}
+
+void initPoset(long long &id1, long long &id2)
+{
+  id1 = poset_new();
+  id2 = poset_new();
+
+  assert(poset_insert(id1, "xd") == true);
+  assert(poset_insert(id1, "ALA") == true);
+
+  assert(poset_insert(id2, "A") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "B") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "C") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "X") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id2, "Y") == true && "insert into id2 poset was not succesful\n");
+
+}
+
+void TEST_poset_add_remove()
+{
+  long long id1, id2;
+  initPoset(id1, id2);
+
+  assert(poset_add(id2, "A", "B") == true);
+  assert(poset_add(id2, "A", "C") == true);
+  assert(poset_add(id2, "A", "B") == false);
+
+  cout << "1) Relations added: A<B, A<C, A<B: " << id2 << "\n\n";
+  printPoset(allPosets[id2]);
+
+  assert(poset_add(id2, "B", "C") == true);
+
+  cout << "2) Relations added B<C: " << id2 << "\n\n";
+  printPoset(allPosets[id2]);
+
+  cout << "\nposet_remove(A):\n";
+
+  assert(poset_remove(id2, "A") == true);
+  assert(allPosets[id2]->second->size() == 4 && "Removal of whole row didnt work\n");
+  assert(allPosets[id2]->second->at(0).size() == 4 && "Removal of whole column didnt work\n");
+
+  cout << "3) printing poset after removal:\n";
+  printPoset(allPosets[id2]);
 }
 
 void test()
@@ -374,6 +437,6 @@ int main()
 {
 
   TEST_poset_new_delete_insert_add();
-
+  TEST_poset_add_remove();
   return 0;
 }
