@@ -5,32 +5,61 @@
 #include <set>
 #include <vector>
 
-
-using std::string;
-using std::cout;
-using std::cin;
 using std::cerr;
+using std::cin;
+using std::cout;
+using std::exit;
 using std::list;
+using std::pair;
 using std::set;
+using std::string;
 using std::unordered_map;
 using std::vector;
-using std::exit;
-using std::pair;
-
 
 using poset_elem = string;
-
 using vectorOfStrings = vector<poset_elem>;
 using posetRelationsArray = vector<vector<int>>;
-
 using identificator = unsigned long;
+using poset_t = pair<vectorOfStrings *, posetRelationsArray *>;
 
-using poset_t = pair<vectorOfStrings*, posetRelationsArray*>;
+unordered_map<identificator, poset_t *> allPosets;
 
+void printVectorOfStrings(vectorOfStrings const &vec)
+{
+  size_t n = vec.size();
 
-unordered_map<identificator, poset_t*> allPosets;
+  cout << "vecOfStrings: ";
+  for (size_t i = 0; i < n; i++)
+    cout << vec[i] << ", ";
+  cout << "\n";
+}
 
-//tylko zeby bylo teraz, przypisuje id zawsze o 1 wiekszy od najwyzszego id.
+void printArrOfRelations(posetRelationsArray const &arr)
+{
+  size_t rows = arr.size();
+  size_t columns = arr[0].size();
+
+  cout << "Array of relations: \n";
+  cout << " ";
+
+  for(size_t i = 0; i < columns; i++)
+    cout << i << " ";
+
+  cout << "\n";
+
+  for(size_t i = 0; i < rows; i++)
+  {
+    cout << i << " ";
+
+    for(size_t j = 0; j < columns; j++)
+      cout << arr[i][j] << " ";
+    
+    cout << "\n";
+  }
+
+}
+
+// tylko zeby bylo teraz, przypisuje id zawsze o 1 wiekszy od najwyzszego id.
 unsigned long poset_new(void)
 {
   unsigned long id = 0;
@@ -44,7 +73,7 @@ unsigned long poset_new(void)
       cerr << "Poset_new - no free IDs to use\n";
       exit(-1);
     }
-    for (const auto& entry : allPosets)
+    for (const auto &entry : allPosets)
     {
       if (entry.first >= id)
       {
@@ -69,7 +98,8 @@ unsigned long poset_new(void)
 void poset_delete(unsigned long id)
 {
   auto it = allPosets.find(id);
-  if (it != allPosets.end()) {
+  if (it != allPosets.end())
+  {
     allPosets.erase(it);
   }
 }
@@ -92,24 +122,24 @@ size_t poset_size(unsigned long id)
 bool poset_insert(unsigned long id, char const *value)
 {
   auto it = allPosets.find(id);
-  if (it != allPosets.end()) 
+  if (it != allPosets.end())
   {
     vectorOfStrings *v = it->second->first;
-    for (const poset_elem& str : *v)
+    for (const poset_elem &str : *v)
     {
-      if (str == value) 
+      if (str == value)
       {
         return false;
       }
     }
     v->push_back(value);
 
-
     posetRelationsArray *p = it->second->second;
-    p->push_back(vector<int>(p->size(), -1)); //dodanie nowego wiersza wypelnionego -1
+    p->push_back(vector<int>(p->size(), -1)); // dodanie nowego wiersza wypelnionego -1
 
-    //dodanie nowej kolumny
-    for (vector<int>& row : *p) {
+    // dodanie nowej kolumny
+    for (vector<int> &row : *p)
+    {
       row.push_back(-1);
     }
 
@@ -129,28 +159,28 @@ bool poset_test(unsigned long id, char const *value1, char const *value2);
 
 void poset_clear(unsigned long id);
 
-
-void Test_insert() 
+void Test_insert()
 {
   vectorOfStrings *v = allPosets[0]->first;
   posetRelationsArray *p = allPosets[0]->second;
 
-  for (const poset_elem& str : *v)
+  for (const poset_elem &str : *v)
   {
     cout << str << " ";
   }
   cout << std::endl;
 
-  for (vector<int>& row : *p) {
-      for (int& num: row) {
-        cout << num << " ";
-      }
-      cout << std::endl;
+  for (vector<int> &row : *p)
+  {
+    for (int &num : row)
+    {
+      cout << num << " ";
     }
+    cout << std::endl;
+  }
 }
 
-
-int main() 
+int main()
 {
   int id = poset_new();
   int id2 = poset_new();
@@ -164,9 +194,7 @@ int main()
   cout << t1 << t2 << t3 << std::endl;
   Test_insert();
   int s = poset_size(id);
-  cout  << s << std::endl;
+  cout << s << std::endl;
 
-
-  
   return 0;
 }
