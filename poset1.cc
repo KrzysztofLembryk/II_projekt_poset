@@ -186,16 +186,27 @@ size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
             relArr->at(currentElem)[j] == RELATION_TRANSITIVITY)
             {
               relArr->at(currentElem)[j] = NO_RELATION;
+              relArr->at(j)[currentElem] = NO_RELATION;
             }
           }
-
         }
 }
 
 void deleteRelationsLarger(posetRelationsArray *relArr, 
 size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
 {
-
+  if (relArr->at(currentElem)[idxOfElemToDelete] == RELATION_IM_LARGER)
+  {
+    for(size_t j = 0; j < nbrOfRows; j++)
+    {
+      if(relArr->at(idxOfElemToDelete)[j] == RELATION_IM_LARGER &&
+      relArr->at(j)[currentElem] == RELATION_TRANSITIVITY)
+      {
+        relArr->at(j)[currentElem] = NO_RELATION;
+        relArr->at(currentElem)[j] = NO_RELATION;
+      }
+    }
+  }
 }
 
 void checkIfElemExistInVecOfStr(vectorOfStrings *v, char const *value, 
@@ -238,6 +249,7 @@ bool poset_remove(unsigned long id, char const *value)
         if(i != idxOfElem)
         {
           deleteRelationsTransitivity(relationArr, i, idxOfElem, nbrOfRows);
+          deleteRelationsLarger(relationArr, i, idxOfElem, nbrOfRows);
         
           rowVec = &(relationArr->at(i));
           rowVec->erase(rowVec->begin() + idxOfElem);  
