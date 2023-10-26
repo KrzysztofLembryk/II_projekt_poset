@@ -4,6 +4,7 @@
 #include <list>
 #include <set>
 #include <vector>
+#include <cassert>
 
 using std::cerr;
 using std::cin;
@@ -16,6 +17,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
+using index = size_t;
 using poset_elem = string;
 using vectorOfStrings = vector<poset_elem>;
 using posetRelationsArray = vector<vector<int>>;
@@ -100,6 +102,8 @@ void poset_delete(unsigned long id)
   auto it = allPosets.find(id);
   if (it != allPosets.end())
   {
+    delete(it->second->first);
+    delete(it->second->second);
     allPosets.erase(it);
   }
 }
@@ -151,7 +155,57 @@ bool poset_insert(unsigned long id, char const *value)
 
 bool poset_remove(unsigned long id, char const *value);
 
-bool poset_add(unsigned long id, char const *value1, char const *value2);
+bool poset_add(unsigned long id, char const *value1, char const *value2)
+{
+  auto it = allPosets.find(id);
+  if (it != allPosets.end())
+  {
+    long long index1 = -1; //hadnt any better idea how to do it
+    long long index2 = -1;
+    vectorOfStrings *v = it->second->first;
+    for (index i = 0; i < v->size(); i++) 
+    {
+      if (v->at(i) == value1) 
+      {
+        index1 = i;
+      }
+      if (v->at(i) == value2)
+      {
+        index2 = i;
+      }
+    }
+
+    if (index1 == -1 || index2 == -1) //there is no element (value1 or value2) in a set
+    {
+      return false;
+    }
+    else
+    {
+      posetRelationsArray *p = it->second->second;
+
+      if (p->at(index1)[index2] == 1 || p->at(index2)[index1] == 1) //if there is an edge between value1 and value2
+      {
+        return false;
+      }
+      else
+      {
+        p->at(index1)[index2] = 1; //edge from index1(value1) to index2 (value2)
+
+        //now add edges that will result from transitivity
+        for (index i = 0; i < p->size(); i++) {
+          if (p->at(i)[index1] != -1 && p->at(i)[index2] == -1)
+          {
+            p->at(i)[index2] = 2;
+          }
+        }
+
+        return true;
+      }
+    }
+  }
+
+  return false;
+};
 
 bool poset_del(unsigned long id, char const *value1, char const *value2);
 
@@ -190,8 +244,14 @@ int main()
   cout << id << id2 << id4;
   bool t1 = poset_insert(id, "A");
   bool t2 = poset_insert(id, "B");
-  bool t3 = poset_insert(id2, "B");
-  cout << t1 << t2 << t3 << std::endl;
+  bool t3 = poset_insert(id, "C");
+  assert(t1 == true);
+  assert(t2 == true);
+  assert(t3 == true);
+  bool a1 = poset_add(id, "A", "B");
+  bool a2 = poset_add(id, "B", "C");
+  assert(a1 == true);
+  assert(a2 == true);
   Test_insert();
   int s = poset_size(id);
   cout << s << std::endl;
