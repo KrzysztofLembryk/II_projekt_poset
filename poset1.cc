@@ -414,6 +414,24 @@ void poset_clear(unsigned long id)
 
 // ------------- TESTS -------------
 
+int getValOfTwoElemRelation(const char *val1, const char *val2, poset_t const *p)
+{
+  vectorOfStrings *v = p->first;
+  long long idx1, idx2;
+  
+  findIndexesOfGivenValues(idx1, idx2, val1, val2, v);
+  if(idx1 == -1 || idx2 == -1)
+    return 2137;
+  
+  return p->second->at(idx1)[idx2];
+
+  //checkIfElemExistInVecOfStr(v, var, idx, exist);
+  //if(exist)
+  //  return p->second->at(idx)[id];
+  
+  
+}
+
 void TEST_poset_new_delete_insert_add()
 {
   cout << "----- TEST_poset_new_delete_insert -----\n";
@@ -542,17 +560,39 @@ void DETAILED_TEST_poset_remove()
 
   // we should get
   /** A < B < C, A < X, Y < X
-  *    A  0  C  X  Y
+  *    A  C  X  Y
   *   ----------------
-  * A| 1  0 -1  1 -1 
-  * 0| 0  0  0  0  0
-  * C|-1  0  1 -1 -1
-  * X| 3  0 -1  1  3
-  * Y|-1  0 -1  1  1
+  * A| 1 -1  1 -1 
+  * C|-1  1 -1 -1
+  * X| 3 -1  1  3
+  * Y|-1 -1  1  1
+  */
+  assert(getValOfTwoElemRelation("A", "X", allPosets[id2]) == 1);
+  assert(getValOfTwoElemRelation("A", "C", allPosets[id2]) == -1);
+  assert(getValOfTwoElemRelation("C", "A", allPosets[id2]) == -1);
+
+  assert(poset_add(id2, "X", "C") == true);
+
+  printPoset(allPosets[id2]);
+  // we should get
+  /** A < B < C, A < X, Y < X
+  *    A  C  X  Y
+  *   ----------------
+  * A| 1  2  1 -1 
+  * C| 3  1  3  3
+  * X| 3  1  1  3
+  * Y|-1  2  1  1
   */
 
-  assert(allPosets[id2]->second->at(0)[1] == -1);
-  assert(allPosets[id2]->second->at(1)[0] == -1);
+  // C
+  assert(getValOfTwoElemRelation("C", "A", allPosets[id2]) == 3);
+  assert(getValOfTwoElemRelation("C", "X", allPosets[id2]) == 3);
+  assert(getValOfTwoElemRelation("C", "Y", allPosets[id2]) == 3);
+  // X
+  assert(getValOfTwoElemRelation("X", "A", allPosets[id2]) == 3);
+  assert(getValOfTwoElemRelation("X", "C", allPosets[id2]) == 1);
+  assert(getValOfTwoElemRelation("X", "Y", allPosets[id2]) == 3);
+
 }
 
 void test()
