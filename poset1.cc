@@ -4,6 +4,9 @@
 #include <list>
 #include <set>
 #include <vector>
+#include <cassert>
+
+#define assertm(exp, msg) assert(((void)msg, exp))
 
 using std::cerr;
 using std::cin;
@@ -31,7 +34,7 @@ void printVectorOfStrings(vectorOfStrings const &vec)
   cout << "vecOfStrings: ";
   for (size_t i = 0; i < n; i++)
     cout << vec[i] << ", ";
-  cout << "\n";
+  cout << "\n\n";
 }
 
 void printArrOfRelations(posetRelationsArray const &arr)
@@ -40,23 +43,22 @@ void printArrOfRelations(posetRelationsArray const &arr)
   size_t columns = arr[0].size();
 
   cout << "Array of relations: \n";
-  cout << " ";
+  cout << "  ";
 
-  for(size_t i = 0; i < columns; i++)
+  for (size_t i = 0; i < columns; i++)
     cout << i << " ";
 
   cout << "\n";
 
-  for(size_t i = 0; i < rows; i++)
+  for (size_t i = 0; i < rows; i++)
   {
     cout << i << " ";
 
-    for(size_t j = 0; j < columns; j++)
+    for (size_t j = 0; j < columns; j++)
       cout << arr[i][j] << " ";
-    
+
     cout << "\n";
   }
-
 }
 
 // tylko zeby bylo teraz, przypisuje id zawsze o 1 wiekszy od najwyzszego id.
@@ -73,6 +75,7 @@ unsigned long poset_new(void)
       cerr << "Poset_new - no free IDs to use\n";
       exit(-1);
     }
+
     for (const auto &entry : allPosets)
     {
       if (entry.first >= id)
@@ -85,21 +88,50 @@ unsigned long poset_new(void)
 
   poset_t *newPoset = new poset_t;
   vectorOfStrings *newVecOfPosetElem = new vectorOfStrings;
-  posetRelationsArray *newP = new posetRelationsArray;
+  posetRelationsArray *newRelationsArr = new posetRelationsArray;
 
   newPoset->first = newVecOfPosetElem;
-  newPoset->second = newP;
+  newPoset->second = newRelationsArr;
 
   allPosets.insert({id, newPoset});
 
   return id;
 }
 
+void test()
+{
+  poset_t *newPoset = new poset_t;
+  vectorOfStrings newVecOfPosetElem;
+  posetRelationsArray newP;
+
+  newPoset->first = &newVecOfPosetElem;
+  newPoset->second = &newP;
+
+  allPosets.insert({0, newPoset});
+
+  allPosets[0]->first->push_back("69");
+  allPosets[0]->first->push_back("Alaaa");
+  allPosets[0]->second->push_back(vector<int>());
+  allPosets[0]->second->push_back(vector<int>());
+  posetRelationsArray *arr = allPosets[0]->second;
+  (*arr)[0].push_back(1);
+  (*arr)[0].push_back(0);
+  (*arr)[1].push_back(2);
+  (*arr)[1].push_back(3);
+
+  printVectorOfStrings(*(allPosets[0]->first));
+  printArrOfRelations(*arr);
+
+}
+
+
 void poset_delete(unsigned long id)
 {
   auto it = allPosets.find(id);
   if (it != allPosets.end())
   {
+    delete it->second->first;
+    delete it->second->second;
     allPosets.erase(it);
   }
 }
@@ -122,26 +154,28 @@ size_t poset_size(unsigned long id)
 bool poset_insert(unsigned long id, char const *value)
 {
   auto it = allPosets.find(id);
+
   if (it != allPosets.end())
   {
     vectorOfStrings *v = it->second->first;
+
     for (const poset_elem &str : *v)
     {
       if (str == value)
-      {
         return false;
-      }
     }
+
     v->push_back(value);
 
     posetRelationsArray *p = it->second->second;
-    p->push_back(vector<int>(p->size(), -1)); // dodanie nowego wiersza wypelnionego -1
+
+    // dodanie nowego wiersza wypelnionego -1
+    // -1 oznacza brak relacji
+    p->push_back(vector<int>(p->size(), -1)); 
 
     // dodanie nowej kolumny
     for (vector<int> &row : *p)
-    {
       row.push_back(-1);
-    }
 
     return true;
   }
@@ -158,6 +192,40 @@ bool poset_del(unsigned long id, char const *value1, char const *value2);
 bool poset_test(unsigned long id, char const *value1, char const *value2);
 
 void poset_clear(unsigned long id);
+
+
+
+// ------------- TESTS -------------
+
+void TEST_poset_new_delete_insert()
+{
+  cout << "----- TEST_poset_new_delete_insert -----\n";
+  cout << "NEW/DELETE SECTION TEST: \n";
+
+  unsigned long id1 = poset_new();
+  unsigned long id2 = poset_new();
+  unsigned long id3 = poset_new();
+
+  assert(allPosets.size() == 3 && "allPosets.size is not equal 3, creating posets went wrong\n");
+  poset_delete(id1);
+  assert(allPosets.size() == 2 && "allPosets.size is not equal 2, deleting went wrong\n");
+
+  unsigned long id4 = poset_new();
+
+  assert(id2 == 1 && "id2 should equal 1\n");
+
+  cout << "INSERT SECTION TEST: \n";
+
+  assert(poset_insert(id1, "xd") == false && "poset id1 does not exist, but inserting was a success - WRONG\n");
+  assert(poset_insert(id2, "A") == true && "insert into id2 poset was not succesful\n");
+  assert(poset_insert(id3, "B") == true && "insert into id3 poset was not succesful\n");
+
+  cout << "TESTS PASSED\n\n";
+  cout << "printing id2=" << id2 << " poset: \n\n";
+
+  printVectorOfStrings(*allPosets[id2]->first);
+  printArrOfRelations(*allPosets[id2]->second);
+}
 
 void Test_insert()
 {
@@ -180,7 +248,7 @@ void Test_insert()
   }
 }
 
-int main()
+void filipsTEST()
 {
   int id = poset_new();
   int id2 = poset_new();
@@ -195,6 +263,13 @@ int main()
   Test_insert();
   int s = poset_size(id);
   cout << s << std::endl;
+}
+
+
+int main()
+{
+  
+  TEST_poset_new_delete_insert();
 
   return 0;
 }
