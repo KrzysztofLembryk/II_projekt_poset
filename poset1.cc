@@ -559,7 +559,7 @@ void DETAILED_TEST_poset_remove()
   printPoset(allPosets[id2]);
 
   // we should get
-  /** A < B < C, A < X, Y < X
+  /** A , C, A < X, Y < X
   *    A  C  X  Y
   *   ----------------
   * A| 1 -1  1 -1 
@@ -575,7 +575,7 @@ void DETAILED_TEST_poset_remove()
 
   printPoset(allPosets[id2]);
   // we should get
-  /** A < B < C, A < X, Y < X
+  /** A < X < C, Y < X < C
   *    A  C  X  Y
   *   ----------------
   * A| 1  2  1 -1 
