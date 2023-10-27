@@ -400,12 +400,13 @@ bool isAnythingOnTheLeft(posetRelationsArray *relArr, long long const idx1)
 }
 
 bool relationGoodToDelete(posetRelationsArray *relationArr, 
-long long const idx1, long long const idx2)
+long long const idx1, long long const idx2, 
+bool &isOnTheLeft, bool &isOnTheRight)
 {
   if(!somethingIsBetweenTwoElem(relationArr, idx1, idx2))
   {
-    bool isOnTheLeft = isAnythingOnTheLeft(relationArr, idx1);
-    bool isOnTheRight = isAnythingOnTheRight(relationArr, idx2);
+    isOnTheLeft = isAnythingOnTheLeft(relationArr, idx1);
+    isOnTheRight = isAnythingOnTheRight(relationArr, idx2);
           
     // jesli z obu stron cos mamy, to nie mozemy usunac tej relacji
     // bo zostawimy dziure w ciagu nierownosci
@@ -416,6 +417,45 @@ long long const idx1, long long const idx2)
   }
   
   return false;
+}
+
+void poset_del_IsOnTheLeft(posetRelationsArray *relArr, 
+long long const idx1, long long const idx2)
+{
+  size_t nbrOfRows = relArr->at(idx2).size();
+
+  for(size_t i = 0; i < nbrOfRows; i++)
+  {
+    if(relArr->at(i)[idx1] == RELATION || 
+    relArr->at(i)[idx1] == RELATION_TRANSITIVITY)
+    {
+      if(relArr->at(i)[idx2] == RELATION_TRANSITIVITY)
+      {
+        relArr->at(i)[idx2] = NO_RELATION;
+        relArr->at(idx2)[i] = NO_RELATION;
+      }
+    }
+  }
+
+}
+
+void poset_del_IsOnTheRight(posetRelationsArray *relArr, 
+long long const idx1, long long const idx2)
+{
+  size_t nbrOfRows = relArr->at(idx2).size();
+
+  for(size_t i = 0; i < nbrOfRows; i++)
+  {
+    if(relArr->at(i)[idx2] == RELATION_IM_LARGER)
+    {
+      if(relArr->at(idx1)[i] == RELATION_TRANSITIVITY)
+      {
+        relArr->at(i)[idx1] = NO_RELATION;
+        relArr->at(idx1)[i] = NO_RELATION;
+      }
+    }
+  }
+
 }
 
 bool poset_del(unsigned long id, char const *value1, char const *value2)
@@ -440,9 +480,20 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
 
       if (relationArr->at(index1)[index2] == RELATION)
       {
-        if(relationGoodToDelete(relationArr, index1, index2))
-        {
+        bool isOnTheLeft, isOnTheRight;
 
+        if(relationGoodToDelete(relationArr, index1, index2, 
+        isOnTheLeft, isOnTheRight))
+        {
+          relationArr->at(index1)[index2] = NO_RELATION;
+          relationArr->at(index2)[index1] = NO_RELATION;
+
+          if(isOnTheLeft)
+            poset_del_IsOnTheLeft(relationArr, index1, index2);
+          else
+            poset_del_IsOnTheRight(relationArr, index1, index2);
+          
+          return true;
         }
       }
     }
