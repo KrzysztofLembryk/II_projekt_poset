@@ -403,6 +403,17 @@ void threeArgumentsFuncErr(string fName, unsigned long id, char const *value1, c
   {
     cerr << fName << getErrPair(to_string(id), 
     getErrStr(value1) + ", " + getErrStr(value2)) << "\n";
+  } 
+}
+
+void oneArgumentFuncErr(string fName, unsigned long id)
+{
+  if constexpr (debug)
+  {
+    if (fName == "poset_new")
+      cerr << fName << "()\n";
+    else
+      cerr << fName << getErrPair(to_string(id));
   }
     
 }
@@ -412,11 +423,9 @@ void threeArgumentsFuncErr(string fName, unsigned long id, char const *value1, c
 // tylko zeby bylo teraz, przypisuje id zawsze o 1 wiekszy od najwyzszego id.
 unsigned long poset_new(void)
 {
-  if constexpr (debug)
-  {
-    cerr << __func__ << "()\n";
-  }
   unsigned long id = 0;
+  
+  oneArgumentFuncErr(string(__func__), id);
 
   if (!allPosets.empty())
   {
@@ -458,10 +467,7 @@ unsigned long poset_new(void)
 // DONE
 void poset_delete(unsigned long id)
 {
-  if constexpr (debug)
-  {
-    cerr << __func__ << getErrPair(to_string(id)) << "\n"; //"(" << id << ")\n";
-  }
+  oneArgumentFuncErr(string(__func__), id);
 
   auto it = allPosets.find(id);
 
@@ -483,10 +489,7 @@ void poset_delete(unsigned long id)
 // DONE
 size_t poset_size(unsigned long id)
 {
-  if constexpr (debug)
-  {
-    cerr << __func__ << getErrPair(to_string(id)) << "\n";
-  }
+  oneArgumentFuncErr(string(__func__), id);
 
   auto it = allPosets.find(id);
   size_t sizeOfPoset = 0;
@@ -805,13 +808,10 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
   return false;
 }
 
-// DONE
 void poset_clear(unsigned long id)
 {
-  if constexpr (debug)
-  {
-    cerr << __func__ << getErrPair(to_string(id));
-  }
+  oneArgumentFuncErr(string(__func__), id);
+  
   auto it = allPosets.find(id);
 
   if (it != allPosets.end())
