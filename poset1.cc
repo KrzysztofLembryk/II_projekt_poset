@@ -319,7 +319,7 @@ string getErrStr(char const *val)
 string getErrPosetId(unsigned long id)
 {
   string str(": poset ");
-  str = str + std::to_string(id);
+  str = str + std::to_string(id) + " ";
   return str;
 }
 
@@ -365,7 +365,7 @@ unsigned long poset_new(void)
 
   if constexpr (debug)
   {
-    cerr << __func__ << getErrPosetId(id) << " created\n";
+    cerr << __func__ << getErrPosetId(id) << "created\n";
   }
 
   return id;
@@ -374,12 +374,30 @@ unsigned long poset_new(void)
 // DONE
 void poset_delete(unsigned long id)
 {
+  if constexpr (debug)
+  {
+    cerr << __func__ << "(" << id << ")\n";
+  }
+
   auto it = allPosets.find(id);
+
   if (it != allPosets.end())
   {
     delete it->second->first;
     delete it->second->second;
     allPosets.erase(it);
+
+    if constexpr (debug)
+    {
+      cerr << __func__ << getErrPosetId(id) << "deleted\n";
+    }
+  }
+  else
+  {
+    if constexpr (debug)
+    {
+      cerr << __func__ << getErrPosetId(id) << "does not exist\n";
+    }
   }
 }
 
@@ -402,14 +420,14 @@ size_t poset_size(unsigned long id)
     sizeOfPoset = v->size();
     if constexpr (debug)
     {
-      cerr << __func__ << getErrPosetId(id) << " contains " << sizeOfPoset << " element(s)\n";
+      cerr << __func__ << getErrPosetId(id) << "contains " << sizeOfPoset << " element(s)\n";
     }
   }
   else
   {
     if constexpr (debug)
     {
-      cerr << __func__ << getErrPosetId(id) << " does not exist\n";
+      cerr << __func__ << getErrPosetId(id) << "does not exist\n";
     }
   }
 
@@ -449,7 +467,7 @@ bool poset_insert(unsigned long id, char const *value)
         {
           // poset_insert: poset 0, element "A" already exists
 
-          cerr << __func__ << getErrPosetId(id) << " element " << getErrStr(value) << " already exists\n";
+          cerr << __func__ << getErrPosetId(id) << ", element " << getErrStr(value) << " already exists\n";
         }
 
         return false;
@@ -484,7 +502,7 @@ bool poset_insert(unsigned long id, char const *value)
   {
     if constexpr (debug)
     {
-      cerr << __func__ << getErrPosetId(id) << " does not exist\n";
+      cerr << __func__ << getErrPosetId(id) << "does not exist\n";
     }
   }
 
@@ -559,7 +577,7 @@ bool poset_remove(unsigned long id, char const *value)
   {
     if constexpr (debug)
     {
-      cerr << __func__ << getErrPosetId(id) << " does not exist\n";
+      cerr << __func__ << getErrPosetId(id) << "does not exist\n";
     }
     
   }
