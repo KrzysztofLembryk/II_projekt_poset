@@ -114,6 +114,7 @@ unsigned long poset_new(void)
   return id;
 }
 
+//DONE
 void poset_delete(unsigned long id)
 {
   auto it = allPosets.find(id);
@@ -125,6 +126,7 @@ void poset_delete(unsigned long id)
   }
 }
 
+//DONE
 size_t poset_size(unsigned long id)
 {
   auto it = allPosets.find(id);
@@ -169,6 +171,10 @@ bool poset_insert(unsigned long id, char const *value)
     // dodanie nowej kolumny
     for (vector<int> &row : *p)
       row.push_back(-1);
+
+    //element is in relation with itself
+    p->at(p->size()-1)[p->size()-1] = 1;
+
 
     return true;
   }
@@ -523,8 +529,8 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
     {
       posetRelationsArray *p = it->second->second;
 
-      // if there is an edge between value1 and value2 (value1 < value2)
-      if (p->at(index1)[index2] == RELATION)
+      // if there is an edge between value1 and value2 (relation or realation transitivity)
+      if (p->at(index1)[index2] == RELATION || p->at(index1)[index2] == RELATION_TRANSITIVITY);
         return true;
     }
   }
@@ -532,6 +538,7 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
   return false;
 }
 
+//DONE
 void poset_clear(unsigned long id)
 {
   auto it = allPosets.find(id);
