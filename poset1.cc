@@ -22,6 +22,7 @@ using std::list;
 using std::pair;
 using std::set;
 using std::string;
+using std::to_string;
 using std::unordered_map;
 using std::vector;
 
@@ -34,14 +35,13 @@ using poset_t = pair<vectorOfStrings *, posetRelationsArray *>;
 
 unordered_map<identificator, poset_t *> allPosets;
 
-const int RELATION = 1;
-const int NO_RELATION = -1;
-const int RELATION_TRANSITIVITY = 2;
-const int RELATION_IM_LARGER = 3;
-const int NOT_FOUND = -1;
-
 namespace
 {
+  const int RELATION = 1;
+  const int NO_RELATION = -1;
+  const int RELATION_TRANSITIVITY = 2;
+  const int RELATION_IM_LARGER = 3;
+  const int NOT_FOUND = -1;
 
   void printVectorOfStrings(vectorOfStrings const &vec)
   {
@@ -310,7 +310,7 @@ namespace
   }
 
   void addTransitivityRelations(posetRelationsArray *relationArr,
-                                    long long const index1, long long const index2)
+                                long long const index1, long long const index2)
   {
     size_t nbrOfRows = relationArr->size();
     for (index i = 0; i < nbrOfRows; i++)
@@ -331,16 +331,24 @@ namespace
     }
   }
 
-  #define GET_VAR_NAME(x) #x
+#define GET_VAR_NAME(x) #x
 
   string getErrStr(char const *val)
   {
-    if(val == nullptr)
+    if (val == nullptr)
       return "NULL";
-    
+
     string str(val);
     str = "\"" + str + "\"";
     return str;
+  }
+
+  string getErrPair(string const &s1, string const &s2 = "")
+  {
+    if (!s2.empty())
+      return "(" + s1 + ", " + s2 + ") ";
+    else
+      return "(" + s1 + ")";
   }
 
   string getErrPosetId(unsigned long id)
@@ -358,8 +366,13 @@ namespace
   string invalidVal(char const *type)
   {
     string str(type);
-    
+
     return ": invalid " + str + " (NULL)\n";
+  }
+
+  string commaElem(string s = "element")
+  {
+    return ", " + s + " ";
   }
 }
 
@@ -414,7 +427,7 @@ void poset_delete(unsigned long id)
 {
   if constexpr (debug)
   {
-    cerr << __func__ << "(" << id << ")\n";
+    cerr << __func__ << getErrPair(to_string(id)) << "\n"; //"(" << id << ")\n";
   }
 
   auto it = allPosets.find(id);
@@ -444,7 +457,7 @@ size_t poset_size(unsigned long id)
 {
   if constexpr (debug)
   {
-    cerr << __func__ << "(" << id << ")\n";
+    cerr << __func__ << getErrPair(to_string(id)) << "\n"; //"(" << id << ")\n";
   }
 
   auto it = allPosets.find(id);
@@ -479,7 +492,7 @@ bool poset_insert(unsigned long id, char const *value)
   {
     if constexpr (debug)
     {
-      cerr << __func__ << "(" << id << ", " << getErrStr(value) << ")\n";
+      cerr << __func__ << getErrPair(to_string(id), getErrStr(value)) << "\n";
       cerr << __func__ << invalidVal(GET_VAR_NAME(value));
     }
     return false;
@@ -487,7 +500,7 @@ bool poset_insert(unsigned long id, char const *value)
 
   if constexpr (debug)
   {
-    cerr << __func__ << "(" << id << ", " << getErrStr(value) << ")\n";
+    cerr << __func__ << getErrPair(to_string(id), getErrStr(value)) << "\n";
   }
 
   auto it = allPosets.find(id);
@@ -504,7 +517,7 @@ bool poset_insert(unsigned long id, char const *value)
         {
           // poset_insert: poset 0, element "A" already exists
 
-          cerr << __func__ << getErrPosetId(id) << ", element " << getErrStr(value) << " already exists\n";
+          cerr << __func__ << getErrPosetId(id) << commaElem() << getErrStr(value) << " already exists\n";
         }
 
         return false;
@@ -530,7 +543,7 @@ bool poset_insert(unsigned long id, char const *value)
     if constexpr (debug)
     {
       // poset_insert: poset 0, element "A" inserted
-      cerr << __func__ << getErrPosetId(id) << ", element " << getErrStr(value) << " inserted\n";
+      cerr << __func__ << getErrPosetId(id) << commaElem() << getErrStr(value) << " inserted\n";
     }
 
     return true;
@@ -552,7 +565,8 @@ bool poset_remove(unsigned long id, char const *value)
   {
     if constexpr (debug)
     {
-      cerr << __func__ << "(" << id << ", (" << getErrStr(value) << ")\n";
+      cerr << __func__ << getErrPair(to_string(id), getErrStr(value)) << "\n";
+      // cerr << __func__ << "(" << id << ", (" << getErrStr(value) << ")\n";
       cerr << __func__ << invalidVal(GET_VAR_NAME(value));
     }
     return false;
@@ -560,7 +574,7 @@ bool poset_remove(unsigned long id, char const *value)
 
   if constexpr (debug)
   {
-    cerr << __func__ << "(" << id << ", " << getErrStr(value) << ")\n";
+    cerr << __func__ << getErrPair(to_string(id), getErrStr(value)) << "\n";
   }
 
   bool elemExists = false;
@@ -597,7 +611,7 @@ bool poset_remove(unsigned long id, char const *value)
 
       if constexpr (debug)
       {
-        cerr << __func__ << getErrPosetId(id) << ", element " << getErrStr(value) << " removed\n";
+        cerr << __func__ << getErrPosetId(id) << commaElem() << getErrStr(value) << " removed\n";
       }
 
       return true;
@@ -606,7 +620,7 @@ bool poset_remove(unsigned long id, char const *value)
     {
       if constexpr (debug)
       {
-        cerr << __func__ << getErrPosetId(id) << ", element " << getErrStr(value) << " " << notExist;
+        cerr << __func__ << getErrPosetId(id) << commaElem() << getErrStr(value) << " " << notExist();
       }
     }
   }
@@ -624,22 +638,22 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
 {
   if constexpr (debug)
   {
-    cerr << __func__ << "(" << id << ", " << getErrStr(value1) << ", " << getErrStr(value2) << ")\n";
+    cerr << __func__ << getErrPair(to_string(id), getErrStr(value1) + ", " + getErrStr(value2)) << "\n";
+    // cerr << __func__ << "(" << id << ", " << getErrStr(value1) << ", " << getErrStr(value2) << ")\n";
   }
 
   if (value1 == nullptr || value2 == nullptr)
   {
     if constexpr (debug)
     {
-      if(value1 == nullptr)
+      if (value1 == nullptr)
         cerr << __func__ << invalidVal(GET_VAR_NAME(value1));
-      if(value2 == nullptr)
+      if (value2 == nullptr)
         cerr << __func__ << invalidVal(GET_VAR_NAME(value2));
     }
-    
+
     return false;
   }
-    
 
   auto it = allPosets.find(id);
 
@@ -647,13 +661,26 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
   {
     long long index1;
     long long index2;
+    bool isRelationAdded;
     vectorOfStrings *v = it->second->first;
 
     findIndexesOfGivenValues(index1, index2, value1, value2, v);
 
     // there is no element (value1 or value2) in a set
     if (index1 == NOT_FOUND || index2 == NOT_FOUND)
-      return false;
+    {
+      // poset_add: poset 0, element "D" does not exist
+      char const *val;
+
+      if (index1 == NOT_FOUND)
+        val = value1;
+      else
+        val = value2;
+
+      cerr << __func__ << getErrPosetId(id) << commaElem() << getErrStr(val) << " " + notExist() + "\n";
+
+      isRelationAdded = false;
+    }
     else
     {
       posetRelationsArray *relationArr = it->second->second;
@@ -661,7 +688,14 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
       // if there is an edge between value1 and value2
       if (relationArr->at(index1)[index2] == RELATION ||
           relationArr->at(index2)[index1] == RELATION)
-        return false;
+      {
+        if constexpr (debug)
+        {
+          cerr << __func__ << getErrPosetId(id) << commaElem("relation");
+        }
+        isRelationAdded = false;
+      }
+
       else
       {
         // edge from index1(value1) to index2 (value2)
@@ -671,11 +705,22 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
         // now add edges that will result from transitivity
         addTransitivityRelations(relationArr, index1, index2);
 
-        return true;
+        isRelationAdded = true;
       }
     }
+
+    if constexpr (debug)
+    {
+      if (isRelationAdded)
+        cerr << __func__ << getErrPosetId(id) << commaElem("relation") << "(" << getErrStr(value1) << ", " << getErrStr(value2) << ") added\n";
+      else
+      {
+      }
+    }
+
+    return isRelationAdded;
   }
-  else 
+  else
   {
     if constexpr (debug)
     {
@@ -1026,7 +1071,7 @@ int main()
   // TEST_poset_new_delete_insert_add();
   // TEST_poset_add_remove();
   // DETAILED_TEST_poset_remove();
-  //test_peczar1();
-  
+  // test_peczar1();
+
   return 0;
 }
