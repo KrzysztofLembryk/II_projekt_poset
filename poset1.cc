@@ -35,7 +35,7 @@ const int RELATION_IM_LARGER = 3;
 
 namespace {
 
-  void printVectorOfStrings(vectorOfStrings const &vec)
+void printVectorOfStrings(vectorOfStrings const &vec)
 {
   size_t n = vec.size();
 
@@ -79,6 +79,12 @@ void printPoset(poset_t const *p)
   printArrOfRelations(*(p->second));
 }
 
+// Helper function for poset_remove. 
+// It finds elements that are in relation with elem_to_remove,
+// meaning: elem1 < elem_to_remove
+// and if elem1 has transitivity relation with elem2, 
+// where elem_to_remove < elem2, than relation between elem1 < elem2
+// is removed.
 void deleteRelationsTransitivity(posetRelationsArray *relArr, 
 size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
 {
@@ -98,6 +104,11 @@ size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
         }
 }
 
+// Helper function for poset_remove.
+// It finds elements that are larger than elem_to_delete
+// meaning elem_to_delete < elem1. Than it finds elements that
+// elem2 < elem_to_delete and if elem2 < elem1 transitivity
+// it deletes relation.
 void deleteRelationsLarger(posetRelationsArray *relArr, 
 size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
 {
@@ -130,6 +141,9 @@ size_t &idx, bool &exist)
     }
 }
 
+// Function finds indexes of given values in vector that 
+// stores elements in poset. If element is not found its
+// index is equal to -1.
 void findIndexesOfGivenValues(long long &index1, long long &index2,
                               char const *value1, char const *value2, vectorOfStrings *v)
 {
@@ -148,7 +162,9 @@ void findIndexesOfGivenValues(long long &index1, long long &index2,
   }
 }
 
-
+// Function checks if there are elements between elements at idx1=A and idx2=B
+// and in relation with them. Meaning if exists C that A < C < B.
+// If such C exists function return true;
 bool somethingIsBetweenTwoElem(posetRelationsArray *relationArr, 
 long long const idx1, long long const idx2)
 {
@@ -258,7 +274,6 @@ long long const idx1, long long const idx2)
 }
 
 }
-
 
 
 // tylko zeby bylo teraz, przypisuje id zawsze o 1 wiekszy od najwyzszego id.
@@ -556,7 +571,11 @@ void poset_clear(unsigned long id)
   }
 }
 
+
+
 // ------------- TESTS -------------
+
+
 
 int getValOfTwoElemRelation(const char *val1, const char *val2, poset_t const *p)
 {
