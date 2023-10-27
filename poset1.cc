@@ -309,19 +309,41 @@ namespace
     }
   }
 
-string getErrStr(char const *val)
-{
-  string str(val);
-  str = "\"" + str + "\"";
-  return str;
-}
+  void poset_add_transitivityRelations(posetRelationsArray *relationArr,
+                                    long long const index1, long long const index2)
+  {
+    size_t nbrOfRows = relationArr->size();
+    for (index i = 0; i < nbrOfRows; i++)
+    {
+      if (relationArr->at(i)[index1] == RELATION &&
+          relationArr->at(i)[index2] == NO_RELATION)
+      {
+        relationArr->at(i)[index2] = RELATION_TRANSITIVITY;
+        relationArr->at(index2)[i] = RELATION_IM_LARGER;
+      }
 
-string getErrPosetId(unsigned long id)
-{
-  string str(": poset ");
-  str = str + std::to_string(id) + " ";
-  return str;
-}
+      else if (relationArr->at(i)[index1] == NO_RELATION &&
+               relationArr->at(index2)[i] == RELATION)
+      {
+        relationArr->at(index1)[i] = RELATION_TRANSITIVITY;
+        relationArr->at(i)[index1] = RELATION_IM_LARGER;
+      }
+    }
+  }
+
+  string getErrStr(char const *val)
+  {
+    string str(val);
+    str = "\"" + str + "\"";
+    return str;
+  }
+
+  string getErrPosetId(unsigned long id)
+  {
+    string str(": poset ");
+    str = str + std::to_string(id) + " ";
+    return str;
+  }
 
 }
 
@@ -436,7 +458,6 @@ size_t poset_size(unsigned long id)
 
 bool poset_insert(unsigned long id, char const *value)
 {
- 
 
   if (value == nullptr)
   {
@@ -448,7 +469,7 @@ bool poset_insert(unsigned long id, char const *value)
     return false;
   }
 
-   if constexpr (debug)
+  if constexpr (debug)
   {
     cerr << __func__ << "(" << id << ", " << getErrStr(value) << ")\n";
   }
@@ -520,7 +541,7 @@ bool poset_remove(unsigned long id, char const *value)
     }
     return false;
   }
-    
+
   if constexpr (debug)
   {
     cerr << __func__ << "(" << id << ", " << getErrStr(value) << ")\n";
@@ -579,7 +600,6 @@ bool poset_remove(unsigned long id, char const *value)
     {
       cerr << __func__ << getErrPosetId(id) << "does not exist\n";
     }
-    
   }
   return false;
 }
@@ -617,26 +637,7 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
         relationArr->at(index2)[index1] = RELATION_IM_LARGER;
 
         // now add edges that will result from transitivity
-        size_t nbrOfRows = relationArr->size();
-
-        // INSTEAD OF THIS FOR LOOP, we need to make
-        // function that does that instead, will look better
-        for (index i = 0; i < nbrOfRows; i++)
-        {
-          if (relationArr->at(i)[index1] == RELATION &&
-              relationArr->at(i)[index2] == NO_RELATION)
-          {
-            relationArr->at(i)[index2] = RELATION_TRANSITIVITY;
-            relationArr->at(index2)[i] = RELATION_IM_LARGER;
-          }
-
-          else if (relationArr->at(i)[index1] == NO_RELATION &&
-                   relationArr->at(index2)[i] == RELATION)
-          {
-            relationArr->at(index1)[i] = RELATION_TRANSITIVITY;
-            relationArr->at(i)[index1] = RELATION_IM_LARGER;
-          }
-        }
+        poset_add_transitivityRelations(relationArr, index1, index2);
 
         return true;
       }
@@ -983,9 +984,9 @@ int main()
 {
   string fName = __func__;
   cout << "function name in string: " << fName << "\n";
-  //TEST_poset_new_delete_insert_add();
-  //TEST_poset_add_remove();
-  //DETAILED_TEST_poset_remove();
+  // TEST_poset_new_delete_insert_add();
+  // TEST_poset_add_remove();
+  // DETAILED_TEST_poset_remove();
   test_peczar1();
 
   return 0;
