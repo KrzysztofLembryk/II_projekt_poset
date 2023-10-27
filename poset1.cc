@@ -8,6 +8,13 @@
 
 #define assertm(exp, msg) assert(((void)msg, exp))
 
+#ifdef NDEBUG
+  bool constexpr debug = false;
+#else
+  bool constexpr debug = true;
+#endif
+
+
 using std::cerr;
 using std::cin;
 using std::cout;
