@@ -309,6 +309,20 @@ namespace
     }
   }
 
+string getErrStr(char const *val)
+{
+  string str(val);
+  str = "\"" + str + "\"";
+  return str;
+}
+
+string getErrPosetId(unsigned long id)
+{
+  string str(": poset ");
+  str = str + std::to_string(id);
+  return str;
+}
+
 }
 
 // tylko zeby bylo teraz, przypisuje id zawsze o 1 wiekszy od najwyzszego id.
@@ -326,7 +340,7 @@ unsigned long poset_new(void)
 
     if (++sizeAllPosets == 0)
     {
-      cerr << "Poset_new - no free IDs to use\n";
+      cerr << "poset_new: no free IDs to use\n";
       exit(-1);
     }
 
@@ -351,7 +365,7 @@ unsigned long poset_new(void)
 
   if constexpr (debug)
   {
-    cerr << __func__ << ": poset " << id << " created\n";
+    cerr << __func__ << getErrPosetId(id) << " created\n";
   }
 
   return id;
@@ -388,14 +402,14 @@ size_t poset_size(unsigned long id)
     sizeOfPoset = v->size();
     if constexpr (debug)
     {
-      cerr << __func__ << ": poset " << id << " contains " << sizeOfPoset << " element(s)\n";
+      cerr << __func__ << getErrPosetId(id) << " contains " << sizeOfPoset << " element(s)\n";
     }
   }
   else
   {
     if constexpr (debug)
     {
-      cerr << __func__ << ": poset " << id << " does not exist\n";
+      cerr << __func__ << getErrPosetId(id) << " does not exist\n";
     }
   }
 
@@ -404,18 +418,21 @@ size_t poset_size(unsigned long id)
 
 bool poset_insert(unsigned long id, char const *value)
 {
-  if constexpr (debug)
-  {
-    cerr << __func__ << "(" << id << ",NULL)\n";
-  }
+ 
 
   if (value == nullptr)
   {
     if constexpr (debug)
     {
+      cerr << __func__ << "(" << id << ", NULL)\n";
       cerr << __func__ << ": invalid value (NULL)\n";
     }
     return false;
+  }
+
+   if constexpr (debug)
+  {
+    cerr << __func__ << "(" << id << ", " << getErrStr(value) << ")\n";
   }
 
   auto it = allPosets.find(id);
@@ -432,7 +449,7 @@ bool poset_insert(unsigned long id, char const *value)
         {
           // poset_insert: poset 0, element "A" already exists
 
-          cerr << __func__ << " poset " << id << " element " << str << " already exists\n";
+          cerr << __func__ << getErrPosetId(id) << " element " << getErrStr(value) << " already exists\n";
         }
 
         return false;
@@ -458,7 +475,7 @@ bool poset_insert(unsigned long id, char const *value)
     if constexpr (debug)
     {
       // poset_insert: poset 0, element "A" inserted
-      cerr << __func__ << ": poset " << id << ", element " << elemToAdd << " inserted\n";
+      cerr << __func__ << getErrPosetId(id) << ", element " << getErrStr(value) << " inserted\n";
     }
 
     return true;
@@ -467,7 +484,7 @@ bool poset_insert(unsigned long id, char const *value)
   {
     if constexpr (debug)
     {
-      cerr << __func__ << ": poset " << id << " does not exist\n";
+      cerr << __func__ << getErrPosetId(id) << " does not exist\n";
     }
   }
 
@@ -477,7 +494,19 @@ bool poset_insert(unsigned long id, char const *value)
 bool poset_remove(unsigned long id, char const *value)
 {
   if (value == nullptr)
+  {
+    if constexpr (debug)
+    {
+      cerr << __func__ << "(" << id << ", NULL)\n";
+      cerr << __func__ << ": invalid value (NULL)\n";
+    }
     return false;
+  }
+    
+  if constexpr (debug)
+  {
+    cerr << __func__ << "(" << id << ", " << getErrStr(value) << ")\n";
+  }
 
   bool elemExists = false;
   size_t idxOfElem;
@@ -511,8 +540,28 @@ bool poset_remove(unsigned long id, char const *value)
 
       relationArr->erase(relationArr->begin() + idxOfElem);
 
+      if constexpr (debug)
+      {
+        cerr << __func__ << getErrPosetId(id) << ", element " << getErrStr(value) << " removed\n";
+      }
+
       return true;
     }
+    else
+    {
+      if constexpr (debug)
+      {
+        cerr << __func__ << getErrPosetId(id) << ", element " << getErrStr(value) << " does not exist\n";
+      }
+    }
+  }
+  else
+  {
+    if constexpr (debug)
+    {
+      cerr << __func__ << getErrPosetId(id) << " does not exist\n";
+    }
+    
   }
   return false;
 }
@@ -914,10 +963,11 @@ void test_peczar1()
 
 int main()
 {
-
-  TEST_poset_new_delete_insert_add();
-  TEST_poset_add_remove();
-  DETAILED_TEST_poset_remove();
+  string fName = __func__;
+  cout << "function name in string: " << fName << "\n";
+  //TEST_poset_new_delete_insert_add();
+  //TEST_poset_add_remove();
+  //DETAILED_TEST_poset_remove();
   test_peczar1();
 
   return 0;
