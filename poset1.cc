@@ -315,6 +315,10 @@ namespace
 // tylko zeby bylo teraz, przypisuje id zawsze o 1 wiekszy od najwyzszego id.
 unsigned long poset_new(void)
 {
+  if constexpr(debug)
+  {
+    cerr << __func__ << "()\n";
+  }
   unsigned long id = 0;
 
   if (!allPosets.empty())
@@ -346,6 +350,11 @@ unsigned long poset_new(void)
 
   allPosets.insert({id, newPoset});
 
+  if constexpr (debug)
+  {
+    cerr << __func__ << ": poset " << id << " created\n";
+  }
+
   return id;
 }
 
@@ -364,17 +373,29 @@ void poset_delete(unsigned long id)
 // DONE
 size_t poset_size(unsigned long id)
 {
-  auto it = allPosets.find(id);
+  if constexpr (debug)
+  {
+    cerr << __func__ << "(" << id << ")\n";
+  }
 
+  auto it = allPosets.find(id);
+  size_t sizeOfPoset = 0;
+  
   if (it != allPosets.end())
   {
     // poset_t = pair<vectorOfStrings*, posetRelationsArray*>;
     // it->first = id, it->second = pair
     vectorOfStrings *v = it->second->first;
-    return v->size();
+    sizeOfPoset = v->size();
   }
 
-  return 0;
+  if constexpr (debug)
+  {
+    cerr << __func__ << ": poset " << id << " contains " << 
+      sizeOfPoset << " element(s)\n";
+  }
+
+  return sizeOfPoset;
 }
 
 bool poset_insert(unsigned long id, char const *value)
@@ -610,7 +631,9 @@ void poset_clear(unsigned long id)
   }
 }
 
+
 // ------------- TESTS -------------
+
 
 int getValOfTwoElemRelation(const char *val1, const char *val2, poset_t const *p)
 {
@@ -851,6 +874,9 @@ void test_peczar1()
   poset_delete(p1);
   poset_delete(p1 + 1);
 }
+
+// --------------------------------
+
 
 int main()
 {
