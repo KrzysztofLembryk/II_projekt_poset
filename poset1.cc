@@ -104,6 +104,7 @@ size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
         }
 }
 
+
 // Helper function for poset_remove.
 // It finds elements that are larger than elem_to_delete
 // meaning elem_to_delete < elem1. Than it finds elements that
@@ -126,6 +127,7 @@ size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
   }
 }
 
+
 void checkIfElemExistInVecOfStr(vectorOfStrings *v, char const *value, 
 size_t &idx, bool &exist)
 {
@@ -140,6 +142,7 @@ size_t &idx, bool &exist)
       }
     }
 }
+
 
 // Function finds indexes of given values in vector that 
 // stores elements in poset. If element is not found its
@@ -162,6 +165,8 @@ void findIndexesOfGivenValues(long long &index1, long long &index2,
   }
 }
 
+
+// Helper function for poset_del.
 // Function checks if there are elements between elements at idx1=A and idx2=B
 // and in relation with them. Meaning if exists C that A < C < B.
 // If such C exists function return true;
@@ -184,6 +189,32 @@ long long const idx1, long long const idx2)
   return false;
 }
 
+
+// Helper function for poset_del.
+// Function checks if there are elements in relation with elem at idx1
+// that are smaller than idx1. Meaning if exists A1,...,An that
+// A1 < elemIdx1, ..., An < elemIdx1. If such elements exist
+// function returns true.
+bool isAnythingOnTheLeft(posetRelationsArray *relArr, long long const idx1)
+{
+  size_t nbrOfCol = relArr->at(idx1).size();
+
+  for(size_t i = 0; i < nbrOfCol; i++)
+  {
+    if(relArr->at(idx1)[i] == RELATION_IM_LARGER)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+
+// Helper function for poset_del.
+// Function checks if there are elements in relation with elem at idx2
+// that are larger than elemIdx2. Meaning if exists A1,...,An that
+// elemIdx1 < A1 , ..., elemIdx1 < An. If such elements exist
+// function returns true.
 bool isAnythingOnTheRight(posetRelationsArray *relArr, long long const idx2)
 {
   size_t nbrOfCol = relArr->at(idx2).size();
@@ -200,20 +231,17 @@ bool isAnythingOnTheRight(posetRelationsArray *relArr, long long const idx2)
   return false;
 }
 
-bool isAnythingOnTheLeft(posetRelationsArray *relArr, long long const idx1)
-{
-  size_t nbrOfCol = relArr->at(idx1).size();
 
-  for(size_t i = 0; i < nbrOfCol; i++)
-  {
-    if(relArr->at(idx1)[i] == RELATION_IM_LARGER)
-    {
-      return true;
-    }
-  }
-  return false;
-}
-
+// Helper function for poset_del.
+// Function checks if relation between elements at idx1 and idx2
+// can be deleted. Such relation can be deleted only when:
+// -> elemIdx1 < elemdIdx2
+// -> there are no elements between elemIdx1 and elemIdx2
+// -> elemIdx1 and elemIdx2 are either first two elems in relation
+//    or last two elem in relation. Meaning there are no B and C that
+//    B < elemIdx1 < elemIdx2 < C. So allowed situations are:
+//    .... < elemIdx1 < elemIdx2 or elemIdx1 < elemIdx2 < ....
+// function returns true when all above conditions are met.
 bool relationGoodToDelete(posetRelationsArray *relationArr, 
 long long const idx1, long long const idx2, 
 bool &isOnTheLeft, bool &isOnTheRight)
@@ -234,6 +262,10 @@ bool &isOnTheLeft, bool &isOnTheRight)
   return false;
 }
 
+
+// Helper function for poset_del.
+// It deletes transitivity relations between elemIdx2 and elements that
+// are < elemIdx1 and have transitivity relation with elemIdx2.
 void poset_del_IsOnTheLeft(posetRelationsArray *relArr, 
 long long const idx1, long long const idx2)
 {
@@ -254,6 +286,10 @@ long long const idx1, long long const idx2)
 
 }
 
+
+// Helper function for poset_del.
+// It deletes im_larger relations between elemIdx1 and elements that
+// are > elemIdx2 and have Im_larger relation with elemIdx1.
 void poset_del_IsOnTheRight(posetRelationsArray *relArr, 
 long long const idx1, long long const idx2)
 {
