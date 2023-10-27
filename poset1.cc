@@ -9,11 +9,10 @@
 #define assertm(exp, msg) assert(((void)msg, exp))
 
 #ifdef NDEBUG
-  bool constexpr debug = false;
+bool constexpr debug = false;
 #else
-  bool constexpr debug = true;
+bool constexpr debug = true;
 #endif
-
 
 using std::cerr;
 using std::cin;
@@ -315,7 +314,7 @@ namespace
 // tylko zeby bylo teraz, przypisuje id zawsze o 1 wiekszy od najwyzszego id.
 unsigned long poset_new(void)
 {
-  if constexpr(debug)
+  if constexpr (debug)
   {
     cerr << __func__ << "()\n";
   }
@@ -380,19 +379,24 @@ size_t poset_size(unsigned long id)
 
   auto it = allPosets.find(id);
   size_t sizeOfPoset = 0;
-  
+
   if (it != allPosets.end())
   {
     // poset_t = pair<vectorOfStrings*, posetRelationsArray*>;
     // it->first = id, it->second = pair
     vectorOfStrings *v = it->second->first;
     sizeOfPoset = v->size();
+    if constexpr (debug)
+    {
+      cerr << __func__ << ": poset " << id << " contains " << sizeOfPoset << " element(s)\n";
+    }
   }
-
-  if constexpr (debug)
+  else
   {
-    cerr << __func__ << ": poset " << id << " contains " << 
-      sizeOfPoset << " element(s)\n";
+    if constexpr (debug)
+    {
+      cerr << __func__ << ": poset " << id << " does not exist\n";
+    }
   }
 
   return sizeOfPoset;
@@ -400,8 +404,19 @@ size_t poset_size(unsigned long id)
 
 bool poset_insert(unsigned long id, char const *value)
 {
+  if constexpr (debug)
+  {
+    cerr << __func__ << "(" << id << ",NULL)\n";
+  }
+
   if (value == nullptr)
+  {
+    if constexpr (debug)
+    {
+      cerr << __func__ << ": invalid value (NULL)\n";
+    }
     return false;
+  }
 
   auto it = allPosets.find(id);
 
@@ -412,7 +427,16 @@ bool poset_insert(unsigned long id, char const *value)
     for (const poset_elem &str : *v)
     {
       if (str == value)
+      {
+        if constexpr (debug)
+        {
+          // poset_insert: poset 0, element "A" already exists
+
+          cerr << __func__ << " poset " << id << " element " << str << " already exists\n";
+        }
+
         return false;
+      }
     }
 
     poset_elem elemToAdd(value);
@@ -431,7 +455,20 @@ bool poset_insert(unsigned long id, char const *value)
     // element is in relation with itself
     p->at(p->size() - 1)[p->size() - 1] = RELATION;
 
+    if constexpr (debug)
+    {
+      // poset_insert: poset 0, element "A" inserted
+      cerr << __func__ << ": poset " << id << ", element " << elemToAdd << " inserted\n";
+    }
+
     return true;
+  }
+  else
+  {
+    if constexpr (debug)
+    {
+      cerr << __func__ << ": poset " << id << " does not exist\n";
+    }
   }
 
   return false;
@@ -631,9 +668,7 @@ void poset_clear(unsigned long id)
   }
 }
 
-
 // ------------- TESTS -------------
-
 
 int getValOfTwoElemRelation(const char *val1, const char *val2, poset_t const *p)
 {
@@ -812,7 +847,7 @@ void DETAILED_TEST_poset_remove()
 void test_peczar1()
 {
   unsigned long p1 = poset_new();
-  
+
   assert(poset_size(p1) == 0);
   assert(poset_size(p1 + 1) == 0);
   assert(!poset_insert(p1, NULL));
@@ -876,7 +911,6 @@ void test_peczar1()
 }
 
 // --------------------------------
-
 
 int main()
 {
