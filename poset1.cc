@@ -309,7 +309,7 @@ namespace
     }
   }
 
-  void poset_add_transitivityRelations(posetRelationsArray *relationArr,
+  void addTransitivityRelations(posetRelationsArray *relationArr,
                                     long long const index1, long long const index2)
   {
     size_t nbrOfRows = relationArr->size();
@@ -331,8 +331,13 @@ namespace
     }
   }
 
+  #define GET_VAR_NAME(x) #x
+
   string getErrStr(char const *val)
   {
+    if(val == nullptr)
+      return "NULL";
+    
     string str(val);
     str = "\"" + str + "\"";
     return str;
@@ -345,6 +350,17 @@ namespace
     return str;
   }
 
+  string notExist()
+  {
+    return "does not exist\n";
+  }
+
+  string invalidVal(char const *type)
+  {
+    string str(type);
+    
+    return ": invalid " + str + " (NULL)\n";
+  }
 }
 
 // tylko zeby bylo teraz, przypisuje id zawsze o 1 wiekszy od najwyzszego id.
@@ -418,7 +434,7 @@ void poset_delete(unsigned long id)
   {
     if constexpr (debug)
     {
-      cerr << __func__ << getErrPosetId(id) << "does not exist\n";
+      cerr << __func__ << getErrPosetId(id) << notExist();
     }
   }
 }
@@ -449,7 +465,7 @@ size_t poset_size(unsigned long id)
   {
     if constexpr (debug)
     {
-      cerr << __func__ << getErrPosetId(id) << "does not exist\n";
+      cerr << __func__ << getErrPosetId(id) << notExist();
     }
   }
 
@@ -463,8 +479,8 @@ bool poset_insert(unsigned long id, char const *value)
   {
     if constexpr (debug)
     {
-      cerr << __func__ << "(" << id << ", NULL)\n";
-      cerr << __func__ << ": invalid value (NULL)\n";
+      cerr << __func__ << "(" << id << ", " << getErrStr(value) << ")\n";
+      cerr << __func__ << invalidVal(GET_VAR_NAME(value));
     }
     return false;
   }
@@ -523,7 +539,7 @@ bool poset_insert(unsigned long id, char const *value)
   {
     if constexpr (debug)
     {
-      cerr << __func__ << getErrPosetId(id) << "does not exist\n";
+      cerr << __func__ << getErrPosetId(id) << notExist();
     }
   }
 
@@ -536,8 +552,8 @@ bool poset_remove(unsigned long id, char const *value)
   {
     if constexpr (debug)
     {
-      cerr << __func__ << "(" << id << ", NULL)\n";
-      cerr << __func__ << ": invalid value (NULL)\n";
+      cerr << __func__ << "(" << id << ", (" << getErrStr(value) << ")\n";
+      cerr << __func__ << invalidVal(GET_VAR_NAME(value));
     }
     return false;
   }
@@ -590,7 +606,7 @@ bool poset_remove(unsigned long id, char const *value)
     {
       if constexpr (debug)
       {
-        cerr << __func__ << getErrPosetId(id) << ", element " << getErrStr(value) << " does not exist\n";
+        cerr << __func__ << getErrPosetId(id) << ", element " << getErrStr(value) << " " << notExist;
       }
     }
   }
@@ -598,7 +614,7 @@ bool poset_remove(unsigned long id, char const *value)
   {
     if constexpr (debug)
     {
-      cerr << __func__ << getErrPosetId(id) << "does not exist\n";
+      cerr << __func__ << getErrPosetId(id) << notExist();
     }
   }
   return false;
@@ -606,8 +622,24 @@ bool poset_remove(unsigned long id, char const *value)
 
 bool poset_add(unsigned long id, char const *value1, char const *value2)
 {
+  if constexpr (debug)
+  {
+    cerr << __func__ << "(" << id << ", " << getErrStr(value1) << ", " << getErrStr(value2) << ")\n";
+  }
+
   if (value1 == nullptr || value2 == nullptr)
+  {
+    if constexpr (debug)
+    {
+      if(value1 == nullptr)
+        cerr << __func__ << invalidVal(GET_VAR_NAME(value1));
+      if(value2 == nullptr)
+        cerr << __func__ << invalidVal(GET_VAR_NAME(value2));
+    }
+    
     return false;
+  }
+    
 
   auto it = allPosets.find(id);
 
@@ -637,10 +669,17 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
         relationArr->at(index2)[index1] = RELATION_IM_LARGER;
 
         // now add edges that will result from transitivity
-        poset_add_transitivityRelations(relationArr, index1, index2);
+        addTransitivityRelations(relationArr, index1, index2);
 
         return true;
       }
+    }
+  }
+  else 
+  {
+    if constexpr (debug)
+    {
+      cerr << __func__ << getErrPosetId(id) << notExist();
     }
   }
 
@@ -987,7 +1026,7 @@ int main()
   // TEST_poset_new_delete_insert_add();
   // TEST_poset_add_remove();
   // DETAILED_TEST_poset_remove();
-  test_peczar1();
-
+  //test_peczar1();
+  
   return 0;
 }
