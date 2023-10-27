@@ -413,7 +413,7 @@ void oneArgumentFuncErr(string fName, unsigned long id)
     if (fName == "poset_new")
       cerr << fName << "()\n";
     else
-      cerr << fName << getErrPair(to_string(id));
+      cerr << fName << getErrPair(to_string(id)) << "\n";
   }
     
 }
@@ -424,7 +424,7 @@ void oneArgumentFuncErr(string fName, unsigned long id)
 unsigned long poset_new(void)
 {
   unsigned long id = 0;
-  
+
   oneArgumentFuncErr(string(__func__), id);
 
   if (!allPosets.empty())
