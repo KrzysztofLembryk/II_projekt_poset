@@ -39,6 +39,7 @@ const int RELATION = 1;
 const int NO_RELATION = -1;
 const int RELATION_TRANSITIVITY = 2;
 const int RELATION_IM_LARGER = 3;
+const int NOT_FOUND = -1;
 
 namespace
 {
@@ -155,8 +156,8 @@ namespace
   void findIndexesOfGivenValues(long long &index1, long long &index2,
                                 char const *value1, char const *value2, vectorOfStrings *v)
   {
-    index1 = -1;
-    index2 = -1;
+    index1 = NOT_FOUND;
+    index2 = NOT_FOUND;
     size_t vSize = v->size();
 
     for (index i = 0; i < vSize; i++)
@@ -165,7 +166,7 @@ namespace
         index1 = i;
       if (v->at(i) == value2)
         index2 = i;
-      if (index1 != -1 && index2 != -1)
+      if (index1 != NOT_FOUND && index2 != NOT_FOUND)
         break;
     }
   }
@@ -400,14 +401,14 @@ bool poset_insert(unsigned long id, char const *value)
 
     // dodanie nowego wiersza wypelnionego -1
     // -1 oznacza brak relacji
-    p->push_back(vector<int>(p->size(), -1));
+    p->push_back(vector<int>(p->size(), NO_RELATION));
 
     // dodanie nowej kolumny
     for (vector<int> &row : *p)
-      row.push_back(-1);
+      row.push_back(NO_RELATION);
 
     // element is in relation with itself
-    p->at(p->size() - 1)[p->size() - 1] = 1;
+    p->at(p->size() - 1)[p->size() - 1] = RELATION;
 
     return true;
   }
@@ -474,7 +475,7 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
     findIndexesOfGivenValues(index1, index2, value1, value2, v);
 
     // there is no element (value1 or value2) in a set
-    if (index1 == NO_RELATION || index2 == NO_RELATION)
+    if (index1 == NOT_FOUND || index2 == NOT_FOUND)
       return false;
     else
     {
@@ -493,6 +494,8 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
         // now add edges that will result from transitivity
         size_t nbrOfRows = relationArr->size();
 
+        // INSTEAD OF THIS FOR LOOP, we need to make
+        // function that does that instead, will look better
         for (index i = 0; i < nbrOfRows; i++)
         {
           if (relationArr->at(i)[index1] == RELATION &&
@@ -532,7 +535,7 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
 
     findIndexesOfGivenValues(index1, index2, value1, value2, v);
 
-    if (index1 == -1 || index2 == -1)
+    if (index1 == NOT_FOUND || index2 == NOT_FOUND)
       return false;
     else if (index1 == index2)
       return false;
