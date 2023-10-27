@@ -779,7 +779,7 @@ void DETAILED_TEST_poset_remove()
 void test_peczar1()
 {
   unsigned long p1 = poset_new();
-  /*
+  
   assert(poset_size(p1) == 0);
   assert(poset_size(p1 + 1) == 0);
   assert(!poset_insert(p1, NULL));
@@ -821,7 +821,6 @@ void test_peczar1()
   assert(!poset_test(p1 + 1, "C", "D"));
   poset_clear(p1);
   poset_clear(p1 + 1);
-  */
   assert(poset_insert(p1, "E"));
   assert(poset_insert(p1, "F"));
   assert(poset_insert(p1, "G"));
@@ -832,15 +831,8 @@ void test_peczar1()
   assert(!poset_test(p1, "F", "E"));
   assert(poset_add(p1, "F", "G"));
   assert(poset_test(p1, "E", "G"));
-  // ponizsze poset_del nie powinno nic zmienic
-  // wiec powinno zwrocic false
   assert(!poset_del(p1, "E", "G"));
-  //cout << "BEFORE DELETION OF E F\n\n";
-  //printPoset(allPosets[p1]);
   assert(poset_del(p1, "E", "F"));
-  //poset_del(p1, "E", "F");
-  //cout << "AFTER DELETION OF E F\n\n";
-  //printPoset(allPosets[p1]);
   assert(!poset_del(p1, "E", "F"));
   assert(!poset_del(p1, "G", "F"));
   assert(!poset_del(p1, "G", "G"));
@@ -853,9 +845,9 @@ void test_peczar1()
 int main()
 {
 
-  // TEST_poset_new_delete_insert_add();
-  // TEST_poset_add_remove();
-  // DETAILED_TEST_poset_remove();
+  TEST_poset_new_delete_insert_add();
+  TEST_poset_add_remove();
+  DETAILED_TEST_poset_remove();
   test_peczar1();
 
   return 0;
