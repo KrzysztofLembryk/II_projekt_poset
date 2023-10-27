@@ -586,7 +586,7 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
       posetRelationsArray *p = it->second->second;
 
       // if there is an edge between value1 and value2 (relation or realation transitivity)
-      if (p->at(index1)[index2] == RELATION || p->at(index1)[index2] == RELATION_TRANSITIVITY);
+      if (p->at(index1)[index2] == RELATION || p->at(index1)[index2] == RELATION_TRANSITIVITY)
         return true;
     }
   }
