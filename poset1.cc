@@ -799,13 +799,26 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
 // DONE
 void poset_clear(unsigned long id)
 {
+  if constexpr (debug)
+  {
+    cerr << __func__ << getErrPair(to_string(id));
+  }
   auto it = allPosets.find(id);
+
   if (it != allPosets.end())
   {
     vectorOfStrings *v = it->second->first;
     posetRelationsArray *p = it->second->second;
     v->clear();
     p->clear();
+
+    if constexpr (debug)
+      cerr << __func__ << getErrPosetId(id) << " cleared\n";
+  }
+  else
+  {
+    if constexpr (debug)
+      cerr << __func__ << getErrPosetId(id) << " " + notExist() + "\n";
   }
 }
 
