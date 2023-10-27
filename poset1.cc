@@ -33,6 +33,8 @@ const int NO_RELATION = -1;
 const int RELATION_TRANSITIVITY = 2;
 const int RELATION_IM_LARGER = 3;
 
+namespace {
+
 void printVectorOfStrings(vectorOfStrings const &vec)
 {
   size_t n = vec.size();
@@ -77,6 +79,239 @@ void printPoset(poset_t const *p)
   printArrOfRelations(*(p->second));
 }
 
+// Helper function for poset_remove. 
+// It finds elements that are in relation with elem_to_remove,
+// meaning: elem1 < elem_to_remove
+// and if elem1 has transitivity relation with elem2, 
+// where elem_to_remove < elem2, than relation between elem1 < elem2
+// is removed.
+void deleteRelationsTransitivity(posetRelationsArray *relArr, 
+size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
+{
+  if (relArr->at(currentElem)[idxOfElemToDelete] == RELATION ||
+          relArr->at(currentElem)[idxOfElemToDelete] == RELATION_TRANSITIVITY)
+        {
+          for(size_t j = 0; j < nbrOfRows; j++)
+          {
+            if((relArr->at(idxOfElemToDelete)[j] == RELATION ||
+            relArr->at(idxOfElemToDelete)[j] == RELATION_TRANSITIVITY) && 
+            relArr->at(currentElem)[j] == RELATION_TRANSITIVITY)
+            {
+              relArr->at(currentElem)[j] = NO_RELATION;
+              relArr->at(j)[currentElem] = NO_RELATION;
+            }
+          }
+        }
+}
+
+
+// Helper function for poset_remove.
+// It finds elements that are larger than elem_to_delete
+// meaning elem_to_delete < elem1. Than it finds elements that
+// elem2 < elem_to_delete and if elem2 < elem1 transitivity
+// it deletes relation.
+void deleteRelationsLarger(posetRelationsArray *relArr, 
+size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
+{
+  if (relArr->at(currentElem)[idxOfElemToDelete] == RELATION_IM_LARGER)
+  {
+    for(size_t j = 0; j < nbrOfRows; j++)
+    {
+      if(relArr->at(idxOfElemToDelete)[j] == RELATION_IM_LARGER &&
+      relArr->at(j)[currentElem] == RELATION_TRANSITIVITY)
+      {
+        relArr->at(j)[currentElem] = NO_RELATION;
+        relArr->at(currentElem)[j] = NO_RELATION;
+      }
+    }
+  }
+}
+
+
+void checkIfElemExistInVecOfStr(vectorOfStrings *v, char const *value, 
+size_t &idx, bool &exist)
+{
+  size_t vSize = v->size();
+  for (size_t i = 0; i < vSize; i++)
+    {
+      if ((*v)[i] == value)
+      {
+        exist = true;
+        idx = i;
+        break;
+      }
+    }
+}
+
+
+// Function finds indexes of given values in vector that 
+// stores elements in poset. If element is not found its
+// index is equal to -1.
+void findIndexesOfGivenValues(long long &index1, long long &index2,
+                              char const *value1, char const *value2, vectorOfStrings *v)
+{
+  index1 = -1;
+  index2 = -1;
+  size_t vSize = v->size();
+
+  for (index i = 0; i < vSize; i++)
+  {
+    if (v->at(i) == value1)
+      index1 = i;
+    if (v->at(i) == value2)
+      index2 = i;
+    if (index1 != -1 && index2 != -1)
+      break;
+  }
+}
+
+
+// Helper function for poset_del.
+// Function checks if there are elements between elements at idx1=A and idx2=B
+// and in relation with them. Meaning if exists C that A < C < B.
+// If such C exists function return true;
+bool somethingIsBetweenTwoElem(posetRelationsArray *relationArr, 
+long long const idx1, long long const idx2)
+{
+  size_t nbrOfRows = relationArr->size();
+  
+  for(size_t i = 0; i < nbrOfRows; i++)
+  {
+    if((relationArr->at(idx1)[i] == RELATION || 
+    relationArr->at(idx1)[i] == RELATION_TRANSITIVITY) && 
+    (relationArr->at(i)[idx2] == RELATION ||
+    relationArr->at(i)[idx2] == RELATION_TRANSITIVITY))
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
+// Helper function for poset_del.
+// Function checks if there are elements in relation with elem at idx1
+// that are smaller than idx1. Meaning if exists A1,...,An that
+// A1 < elemIdx1, ..., An < elemIdx1. If such elements exist
+// function returns true.
+bool isAnythingOnTheLeft(posetRelationsArray *relArr, long long const idx1)
+{
+  size_t nbrOfCol = relArr->at(idx1).size();
+
+  for(size_t i = 0; i < nbrOfCol; i++)
+  {
+    if(relArr->at(idx1)[i] == RELATION_IM_LARGER)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+
+// Helper function for poset_del.
+// Function checks if there are elements in relation with elem at idx2
+// that are larger than elemIdx2. Meaning if exists A1,...,An that
+// elemIdx1 < A1 , ..., elemIdx1 < An. If such elements exist
+// function returns true.
+bool isAnythingOnTheRight(posetRelationsArray *relArr, long long const idx2)
+{
+  size_t nbrOfCol = relArr->at(idx2).size();
+
+  for(size_t i = 0; i < nbrOfCol; i++)
+  {
+    if(relArr->at(idx2)[i] == RELATION ||
+    relArr->at(idx2)[i] == RELATION_TRANSITIVITY)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
+// Helper function for poset_del.
+// Function checks if relation between elements at idx1 and idx2
+// can be deleted. Such relation can be deleted only when:
+// -> elemIdx1 < elemdIdx2
+// -> there are no elements between elemIdx1 and elemIdx2
+// -> elemIdx1 and elemIdx2 are either first two elems in relation
+//    or last two elem in relation. Meaning there are no B and C that
+//    B < elemIdx1 < elemIdx2 < C. So allowed situations are:
+//    .... < elemIdx1 < elemIdx2 or elemIdx1 < elemIdx2 < ....
+// function returns true when all above conditions are met.
+bool relationGoodToDelete(posetRelationsArray *relationArr, 
+long long const idx1, long long const idx2, 
+bool &isOnTheLeft, bool &isOnTheRight)
+{
+  if(!somethingIsBetweenTwoElem(relationArr, idx1, idx2))
+  {
+    isOnTheLeft = isAnythingOnTheLeft(relationArr, idx1);
+    isOnTheRight = isAnythingOnTheRight(relationArr, idx2);
+          
+    // jesli z obu stron cos mamy, to nie mozemy usunac tej relacji
+    // bo zostawimy dziure w ciagu nierownosci
+    if(isOnTheLeft && isOnTheRight)
+      return false;
+     
+    return true;
+  }
+  
+  return false;
+}
+
+
+// Helper function for poset_del.
+// It deletes transitivity relations between elemIdx2 and elements that
+// are < elemIdx1 and have transitivity relation with elemIdx2.
+void poset_del_IsOnTheLeft(posetRelationsArray *relArr, 
+long long const idx1, long long const idx2)
+{
+  size_t nbrOfRows = relArr->at(idx2).size();
+
+  for(size_t i = 0; i < nbrOfRows; i++)
+  {
+    if(relArr->at(i)[idx1] == RELATION || 
+    relArr->at(i)[idx1] == RELATION_TRANSITIVITY)
+    {
+      if(relArr->at(i)[idx2] == RELATION_TRANSITIVITY)
+      {
+        relArr->at(i)[idx2] = NO_RELATION;
+        relArr->at(idx2)[i] = NO_RELATION;
+      }
+    }
+  }
+
+}
+
+
+// Helper function for poset_del.
+// It deletes im_larger relations between elemIdx1 and elements that
+// are > elemIdx2 and have Im_larger relation with elemIdx1.
+void poset_del_IsOnTheRight(posetRelationsArray *relArr, 
+long long const idx1, long long const idx2)
+{
+  size_t nbrOfRows = relArr->at(idx2).size();
+
+  for(size_t i = 0; i < nbrOfRows; i++)
+  {
+    if(relArr->at(i)[idx2] == RELATION_IM_LARGER)
+    {
+      if(relArr->at(idx1)[i] == RELATION_TRANSITIVITY)
+      {
+        relArr->at(i)[idx1] = NO_RELATION;
+        relArr->at(idx1)[i] = NO_RELATION;
+      }
+    }
+  }
+
+}
+
+}
+
+
 // tylko zeby bylo teraz, przypisuje id zawsze o 1 wiekszy od najwyzszego id.
 unsigned long poset_new(void)
 {
@@ -114,6 +349,7 @@ unsigned long poset_new(void)
   return id;
 }
 
+//DONE
 void poset_delete(unsigned long id)
 {
   auto it = allPosets.find(id);
@@ -125,6 +361,7 @@ void poset_delete(unsigned long id)
   }
 }
 
+//DONE
 size_t poset_size(unsigned long id)
 {
   auto it = allPosets.find(id);
@@ -142,6 +379,9 @@ size_t poset_size(unsigned long id)
 
 bool poset_insert(unsigned long id, char const *value)
 {
+  if(value == nullptr)
+    return false;
+  
   auto it = allPosets.find(id);
 
   if (it != allPosets.end())
@@ -167,65 +407,21 @@ bool poset_insert(unsigned long id, char const *value)
     for (vector<int> &row : *p)
       row.push_back(-1);
 
+    //element is in relation with itself
+    p->at(p->size()-1)[p->size()-1] = 1;
+
+
     return true;
   }
 
   return false;
 }
 
-void deleteRelationsTransitivity(posetRelationsArray *relArr, 
-size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
-{
-  if (relArr->at(currentElem)[idxOfElemToDelete] == RELATION ||
-          relArr->at(currentElem)[idxOfElemToDelete] == RELATION_TRANSITIVITY)
-        {
-          for(size_t j = 0; j < nbrOfRows; j++)
-          {
-            if((relArr->at(idxOfElemToDelete)[j] == RELATION ||
-            relArr->at(idxOfElemToDelete)[j] == RELATION_TRANSITIVITY) && 
-            relArr->at(currentElem)[j] == RELATION_TRANSITIVITY)
-            {
-              relArr->at(currentElem)[j] = NO_RELATION;
-              relArr->at(j)[currentElem] = NO_RELATION;
-            }
-          }
-        }
-}
-
-void deleteRelationsLarger(posetRelationsArray *relArr, 
-size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
-{
-  if (relArr->at(currentElem)[idxOfElemToDelete] == RELATION_IM_LARGER)
-  {
-    for(size_t j = 0; j < nbrOfRows; j++)
-    {
-      if(relArr->at(idxOfElemToDelete)[j] == RELATION_IM_LARGER &&
-      relArr->at(j)[currentElem] == RELATION_TRANSITIVITY)
-      {
-        relArr->at(j)[currentElem] = NO_RELATION;
-        relArr->at(currentElem)[j] = NO_RELATION;
-      }
-    }
-  }
-}
-
-void checkIfElemExistInVecOfStr(vectorOfStrings *v, char const *value, 
-size_t &idx, bool &exist)
-{
-  size_t vSize = v->size();
-  for (size_t i = 0; i < vSize; i++)
-    {
-      if ((*v)[i] == value)
-      {
-        exist = true;
-        idx = i;
-        break;
-      }
-    }
-}
-
 bool poset_remove(unsigned long id, char const *value)
 {
+  if(value == nullptr)
+    return false;
+  
   bool elemExists = false;
   size_t idxOfElem;
   auto iter = allPosets.find(id);
@@ -264,26 +460,11 @@ bool poset_remove(unsigned long id, char const *value)
   return false;
 }
 
-void findIndexesOfGivenValues(long long &index1, long long &index2,
-                              char const *value1, char const *value2, vectorOfStrings *v)
-{
-  index1 = -1;
-  index2 = -1;
-  size_t vSize = v->size();
-
-  for (index i = 0; i < vSize; i++)
-  {
-    if (v->at(i) == value1)
-      index1 = i;
-    if (v->at(i) == value2)
-      index2 = i;
-    if (index1 != -1 && index2 != -1)
-      break;
-  }
-}
-
 bool poset_add(unsigned long id, char const *value1, char const *value2)
 {
+  if(value1 == nullptr || value2 == nullptr)
+    return false;
+  
   auto it = allPosets.find(id);
 
   if (it != allPosets.end())
@@ -302,11 +483,13 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
       posetRelationsArray *relationArr = it->second->second;
 
       // if there is an edge between value1 and value2
-      if (relationArr->at(index1)[index2] == RELATION || relationArr->at(index2)[index1] == RELATION)
+      if (relationArr->at(index1)[index2] == RELATION || 
+      relationArr->at(index2)[index1] == RELATION)
         return false;
       else
       {
-        relationArr->at(index1)[index2] = RELATION; // edge from index1(value1) to index2 (value2)
+        // edge from index1(value1) to index2 (value2)
+        relationArr->at(index1)[index2] = RELATION; 
         relationArr->at(index2)[index1] = RELATION_IM_LARGER;
 
         // now add edges that will result from transitivity
@@ -314,15 +497,15 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
 
         for (index i = 0; i < nbrOfRows; i++)
         {
-          // if (relationArr->at(i)[index1] != -1 && relationArr->at(i)[index2] == -1)
-          //   relationArr->at(i)[index2] = 2;
-          if (relationArr->at(i)[index1] == RELATION && relationArr->at(i)[index2] == NO_RELATION)
+          if (relationArr->at(i)[index1] == RELATION && 
+          relationArr->at(i)[index2] == NO_RELATION)
           {
             relationArr->at(i)[index2] = RELATION_TRANSITIVITY;
             relationArr->at(index2)[i] = RELATION_IM_LARGER;
           }
             
-          else if (relationArr->at(i)[index1] == NO_RELATION && relationArr->at(index2)[i] == RELATION)
+          else if (relationArr->at(i)[index1] == NO_RELATION && 
+          relationArr->at(index2)[i] == RELATION)
           {
             relationArr->at(index1)[i] = RELATION_TRANSITIVITY;
             relationArr->at(i)[index1] = RELATION_IM_LARGER;
@@ -337,34 +520,42 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
   return false;
 };
 
-bool relationGoodToDelete(posetRelationsArray *relationArr, long long const idx1, long long const idx2)
-{
-
-  return false;
-}
-
 bool poset_del(unsigned long id, char const *value1, char const *value2)
 {
+  if(value1 == nullptr || value2 == nullptr)
+    return false;
+  
   auto iter = allPosets.find(id);
 
   if (iter != allPosets.end())
   {
-    long long index1;
-    long long index2;
+    long long index1, index2;
     vectorOfStrings *v = iter->second->first;
 
     findIndexesOfGivenValues(index1, index2, value1, value2, v);
 
-    // there is no element (value1 or value2) in a set
     if (index1 == -1 || index2 == -1)
       return false;
     else
     {
       posetRelationsArray *relationArr = iter->second->second;
+
       if (relationArr->at(index1)[index2] == RELATION)
       {
-        if (relationGoodToDelete(relationArr, index1, index2))
+        bool isOnTheLeft, isOnTheRight;
+
+        if(relationGoodToDelete(relationArr, index1, index2, 
+        isOnTheLeft, isOnTheRight))
         {
+          relationArr->at(index1)[index2] = NO_RELATION;
+          relationArr->at(index2)[index1] = NO_RELATION;
+
+          if(isOnTheLeft)
+            poset_del_IsOnTheLeft(relationArr, index1, index2);
+          else
+            poset_del_IsOnTheRight(relationArr, index1, index2);
+          
+          return true;
         }
       }
     }
@@ -374,6 +565,9 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
 
 bool poset_test(unsigned long id, char const *value1, char const *value2)
 {
+  if(value1 == nullptr || value2 == nullptr)
+    return false;
+
   auto it = allPosets.find(id);
 
   if (it != allPosets.end())
@@ -391,8 +585,8 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
     {
       posetRelationsArray *p = it->second->second;
 
-      // if there is an edge between value1 and value2 (value1 < value2)
-      if (p->at(index1)[index2] == 1)
+      // if there is an edge between value1 and value2 (relation or realation transitivity)
+      if (p->at(index1)[index2] == RELATION || p->at(index1)[index2] == RELATION_TRANSITIVITY)
         return true;
     }
   }
@@ -400,6 +594,7 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
   return false;
 }
 
+//DONE
 void poset_clear(unsigned long id)
 {
   auto it = allPosets.find(id);
@@ -412,7 +607,11 @@ void poset_clear(unsigned long id)
   }
 }
 
+
+
 // ------------- TESTS -------------
+
+
 
 int getValOfTwoElemRelation(const char *val1, const char *val2, poset_t const *p)
 {
@@ -424,12 +623,6 @@ int getValOfTwoElemRelation(const char *val1, const char *val2, poset_t const *p
     return 2137;
   
   return p->second->at(idx1)[idx2];
-
-  //checkIfElemExistInVecOfStr(v, var, idx, exist);
-  //if(exist)
-  //  return p->second->at(idx)[id];
-  
-  
 }
 
 void TEST_poset_new_delete_insert_add()
