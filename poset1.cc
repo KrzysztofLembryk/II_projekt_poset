@@ -397,7 +397,15 @@ void twoValueNullErr(string fName, char const *value1, char const *value2)
     }
 }
 
-void threeArgumentsFuncErr(string fName, unsigned long id, char const *value1, char const *value2)
+void oneValueNullErr(string fName, char const *value)
+{
+  if constexpr (debug)
+    {     
+      cerr << fName << invalidVal(GET_VAR_NAME(value));
+    }
+}
+
+void threeArgFuncNameErr(string fName, unsigned long id, char const *value1, char const *value2)
 {
   if constexpr (debug)
   {
@@ -406,7 +414,15 @@ void threeArgumentsFuncErr(string fName, unsigned long id, char const *value1, c
   } 
 }
 
-void oneArgumentFuncErr(string fName, unsigned long id)
+void twoArgFuncNameErr(string fName, unsigned long id, char const *value)
+{
+  if constexpr (debug)
+  {
+    cerr << fName << getErrPair(to_string(id), getErrStr(value)) << "\n";
+  }
+}
+
+void oneArgFuncNameErr(string fName, unsigned long id)
 {
   if constexpr (debug)
   {
@@ -414,8 +430,7 @@ void oneArgumentFuncErr(string fName, unsigned long id)
       cerr << fName << "()\n";
     else
       cerr << fName << getErrPair(to_string(id)) << "\n";
-  }
-    
+  } 
 }
 
 }
@@ -425,7 +440,7 @@ unsigned long poset_new(void)
 {
   unsigned long id = 0;
 
-  oneArgumentFuncErr(string(__func__), id);
+  oneArgFuncNameErr(string(__func__), id);
 
   if (!allPosets.empty())
   {
@@ -467,7 +482,7 @@ unsigned long poset_new(void)
 // DONE
 void poset_delete(unsigned long id)
 {
-  oneArgumentFuncErr(string(__func__), id);
+  oneArgFuncNameErr(string(__func__), id);
 
   auto it = allPosets.find(id);
 
@@ -489,7 +504,7 @@ void poset_delete(unsigned long id)
 // DONE
 size_t poset_size(unsigned long id)
 {
-  oneArgumentFuncErr(string(__func__), id);
+  oneArgFuncNameErr(string(__func__), id);
 
   auto it = allPosets.find(id);
   size_t sizeOfPoset = 0;
@@ -502,7 +517,8 @@ size_t poset_size(unsigned long id)
     sizeOfPoset = v->size();
     if constexpr (debug)
     {
-      cerr << __func__ << getErrPosetId(id) << " contains " << sizeOfPoset << " element(s)\n";
+      cerr << __func__ << getErrPosetId(id) << " contains " <<
+       sizeOfPoset << " element(s)\n";
     }
   }
   else
@@ -513,20 +529,12 @@ size_t poset_size(unsigned long id)
 
 bool poset_insert(unsigned long id, char const *value)
 {
+  twoArgFuncNameErr(string(__func__), id, value);
 
   if (value == nullptr)
   {
-    if constexpr (debug)
-    {
-      cerr << __func__ << getErrPair(to_string(id), getErrStr(value)) << "\n";
-      cerr << __func__ << invalidVal(GET_VAR_NAME(value));
-    }
+    oneValueNullErr(string(__func__), value); 
     return false;
-  }
-
-  if constexpr (debug)
-  {
-    cerr << __func__ << getErrPair(to_string(id), getErrStr(value)) << "\n";
   }
 
   auto it = allPosets.find(id);
@@ -541,8 +549,6 @@ bool poset_insert(unsigned long id, char const *value)
       {
         if constexpr (debug)
         {
-          // poset_insert: poset 0, element "A" already exists
-
           cerr << __func__ << getErrPosetId(id) << commaElem() << getErrStr(value) << " already exists\n";
         }
 
@@ -577,19 +583,12 @@ bool poset_insert(unsigned long id, char const *value)
 
 bool poset_remove(unsigned long id, char const *value)
 {
+  twoArgFuncNameErr(string(__func__), id, value);
+
   if (value == nullptr)
   {
-    if constexpr (debug)
-    {
-      cerr << __func__ << getErrPair(to_string(id), getErrStr(value)) << "\n";
-      cerr << __func__ << invalidVal(GET_VAR_NAME(value));
-    }
+    oneValueNullErr(string(__func__), value);
     return false;
-  }
-
-  if constexpr (debug)
-  {
-    cerr << __func__ << getErrPair(to_string(id), getErrStr(value)) << "\n";
   }
 
   bool elemExists = false;
@@ -647,7 +646,7 @@ bool poset_remove(unsigned long id, char const *value)
 
 bool poset_add(unsigned long id, char const *value1, char const *value2)
 {
-  threeArgumentsFuncErr(string(__func__), id, value1, value2);
+  threeArgFuncNameErr(string(__func__), id, value1, value2);
   
   if (value1 == nullptr || value2 == nullptr)
   {
@@ -722,7 +721,7 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
 
 bool poset_del(unsigned long id, char const *value1, char const *value2)
 {
-  threeArgumentsFuncErr(string(__func__), id, value1, value2);
+  threeArgFuncNameErr(string(__func__), id, value1, value2);
 
   if (value1 == nullptr || value2 == nullptr)
   {
@@ -767,12 +766,15 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
       }
     }
   }
+  else
+    posetNotExistErr(string(__func__), id);
+
   return false;
 }
 
 bool poset_test(unsigned long id, char const *value1, char const *value2)
 {
-  threeArgumentsFuncErr(string(__func__), id, value1, value2);
+  threeArgFuncNameErr(string(__func__), id, value1, value2);
   
   if (value1 == nullptr || value2 == nullptr)
   {
@@ -810,7 +812,7 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
 
 void poset_clear(unsigned long id)
 {
-  oneArgumentFuncErr(string(__func__), id);
+  oneArgFuncNameErr(string(__func__), id);
   
   auto it = allPosets.find(id);
 
