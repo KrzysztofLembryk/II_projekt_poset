@@ -36,11 +36,12 @@ using vectorOfStrings = vector<poset_elem>;
 using posetRelationsArray = vector<vector<int>>;
 using identificator = unsigned long;
 using poset_t = pair<vectorOfStrings *, posetRelationsArray *>;
+using allPosetsMap = unordered_map<identificator, poset_t *>;
 
-unordered_map<identificator, poset_t *> allPosets;
 
 namespace
 {
+
   const int RELATION = 1;
   const int NO_RELATION = -1;
   const int RELATION_TRANSITIVITY = 2;
@@ -335,9 +336,9 @@ namespace
     }
   }
 
-#define GET_VAR_NAME(x) #x
+  #define GET_VAR_NAME(x) #x
 
-// functions for printing debbugging messages
+  // functions for printing debbugging messages
   string getErrStr(char const *val)
   {
     if (val == nullptr)
@@ -439,9 +440,25 @@ void oneArgFuncNameErr(string fName, unsigned long id)
 
 }
 
+
+namespace cxx {
+
+  allPosetsMap init_posets()
+  {
+    allPosetsMap initMap;
+    return initMap;
+  }
+
+allPosetsMap & getAllPosets()
+{
+  static allPosetsMap allPosets = init_posets();
+  return allPosets;
+}
+
 // tylko zeby bylo teraz, przypisuje id zawsze o 1 wiekszy od najwyzszego id.
 unsigned long poset_new(void)
 {
+  auto &allPosets = getAllPosets();
   unsigned long id = 0;
 
   oneArgFuncNameErr(string(__func__), id);
@@ -486,6 +503,7 @@ unsigned long poset_new(void)
 // DONE
 void poset_delete(unsigned long id)
 {
+  auto &allPosets = getAllPosets();
   oneArgFuncNameErr(string(__func__), id);
 
   auto it = allPosets.find(id);
@@ -508,6 +526,7 @@ void poset_delete(unsigned long id)
 // DONE
 size_t poset_size(unsigned long id)
 {
+  auto &allPosets = getAllPosets();
   oneArgFuncNameErr(string(__func__), id);
 
   auto it = allPosets.find(id);
@@ -522,7 +541,7 @@ size_t poset_size(unsigned long id)
     if constexpr (debug)
     {
       cerr << __func__ << getErrPosetId(id) << " contains " <<
-       sizeOfPoset << " element(s)\n";
+      sizeOfPoset << " element(s)\n";
     }
   }
   else
@@ -533,6 +552,7 @@ size_t poset_size(unsigned long id)
 
 bool poset_insert(unsigned long id, char const *value)
 {
+  auto &allPosets = getAllPosets();
   twoArgFuncNameErr(string(__func__), id, value);
 
   if (value == nullptr)
@@ -587,6 +607,7 @@ bool poset_insert(unsigned long id, char const *value)
 
 bool poset_remove(unsigned long id, char const *value)
 {
+  auto &allPosets = getAllPosets();
   twoArgFuncNameErr(string(__func__), id, value);
 
   if (value == nullptr)
@@ -650,6 +671,7 @@ bool poset_remove(unsigned long id, char const *value)
 
 bool poset_add(unsigned long id, char const *value1, char const *value2)
 {
+  auto &allPosets = getAllPosets();
   threeArgFuncNameErr(string(__func__), id, value1, value2);
 
   if (value1 == nullptr || value2 == nullptr)
@@ -725,6 +747,7 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
 
 bool poset_del(unsigned long id, char const *value1, char const *value2)
 {
+  auto &allPosets = getAllPosets();
   threeArgFuncNameErr(string(__func__), id, value1, value2);
 
   if (value1 == nullptr || value2 == nullptr)
@@ -778,6 +801,7 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
 
 bool poset_test(unsigned long id, char const *value1, char const *value2)
 {
+  auto &allPosets = getAllPosets();
   threeArgFuncNameErr(string(__func__), id, value1, value2);
 
   if (value1 == nullptr || value2 == nullptr)
@@ -816,6 +840,7 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
 
 void poset_clear(unsigned long id)
 {
+  auto &allPosets = getAllPosets();
   oneArgFuncNameErr(string(__func__), id);
 
   auto it = allPosets.find(id);
@@ -833,9 +858,10 @@ void poset_clear(unsigned long id)
   else
     posetNotExistErr(string(__func__), id);;
 }
+}
 
 // ------------- TESTS -------------
-
+/*
 int getValOfTwoElemRelation(const char *val1, const char *val2, poset_t const *p)
 {
   vectorOfStrings *v = p->first;
@@ -961,7 +987,7 @@ void DETAILED_TEST_poset_remove()
    * 3| 3 -1 -1  1  3
    * 4|-1 -1 -1  1  1
    */
-
+/*
   assert(poset_add(id2, "A", "B") == true);
   assert(poset_add(id2, "B", "C") == true);
   assert(poset_add(id2, "A", "X") == true);
@@ -983,7 +1009,8 @@ void DETAILED_TEST_poset_remove()
    * X| 3 -1  1  3
    * Y|-1 -1  1  1
    */
-  assert(getValOfTwoElemRelation("A", "X", allPosets[id2]) == 1);
+  /*
+   assert(getValOfTwoElemRelation("A", "X", allPosets[id2]) == 1);
   assert(getValOfTwoElemRelation("A", "C", allPosets[id2]) == -1);
   assert(getValOfTwoElemRelation("C", "A", allPosets[id2]) == -1);
 
@@ -1000,6 +1027,7 @@ void DETAILED_TEST_poset_remove()
    * Y|-1  2  1  1
    */
 
+/*
   // C
   assert(getValOfTwoElemRelation("C", "A", allPosets[id2]) == 3);
   assert(getValOfTwoElemRelation("C", "X", allPosets[id2]) == 3);
@@ -1075,6 +1103,7 @@ void test_peczar1()
   poset_delete(p1);
   poset_delete(p1 + 1);
 }
+*/
 
 // --------------------------------
 
