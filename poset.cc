@@ -554,7 +554,7 @@ namespace cxx {
 // tylko zeby bylo teraz, przypisuje id zawsze o 1 wiekszy od najwyzszego id.
 unsigned long poset_new(void)
 {
-  auto allPosets = getAllPosets();
+  auto &allPosets = getAllPosets();
   unsigned long id = 0;
 
   oneArgFuncNameErr(string(__func__), id);
@@ -595,7 +595,7 @@ void poset_delete(unsigned long id)
 {
   oneArgFuncNameErr(string(__func__), id);
 
-  auto allPosets = getAllPosets();
+  auto &allPosets = getAllPosets();
 
   auto it = allPosets.find(id);
 
@@ -614,7 +614,7 @@ size_t poset_size(unsigned long id)
 {
   oneArgFuncNameErr(string(__func__), id);
 
-  auto allPosets = getAllPosets();
+  auto &allPosets = getAllPosets();
 
   auto it = allPosets.find(id);
   size_t sizeOfPoset = 0;
@@ -636,7 +636,7 @@ bool poset_insert(unsigned long id, char const *value)
 {
   twoArgFuncNameErr(string(__func__), id, value);
 
-  auto allPosets = getAllPosets();
+  auto &allPosets = getAllPosets();
 
   if (value == nullptr)
   {
@@ -687,7 +687,7 @@ bool poset_remove(unsigned long id, char const *value)
 {
   twoArgFuncNameErr(string(__func__), id, value);
 
-  auto allPosets = getAllPosets();
+  auto &allPosets = getAllPosets();
 
   if (value == nullptr)
   {
@@ -744,7 +744,7 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
 {
   threeArgFuncNameErr(string(__func__), id, value1, value2);
 
-  auto allPosets = getAllPosets();
+  auto &allPosets = getAllPosets();
   
   if (value1 == nullptr || value2 == nullptr)
   {
@@ -814,7 +814,7 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
 {
   threeArgFuncNameErr(string(__func__), id, value1, value2);
 
-  auto allPosets = getAllPosets();
+  auto &allPosets = getAllPosets();
 
   if (value1 == nullptr || value2 == nullptr)
   {
@@ -887,7 +887,7 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
 {
   threeArgFuncNameErr(string(__func__), id, value1, value2);
 
-  auto allPosets = getAllPosets();
+  auto &allPosets = getAllPosets();
   
   if (value1 == nullptr || value2 == nullptr)
   {
@@ -943,7 +943,7 @@ void poset_clear(unsigned long id)
 {
   oneArgFuncNameErr(string(__func__), id);
 
-  auto allPosets = getAllPosets();
+  auto &allPosets = getAllPosets();
   
   auto it = allPosets.find(id);
 
@@ -959,4 +959,78 @@ void poset_clear(unsigned long id)
     posetNotExistErr(string(__func__), id);;
 }
 
+}
+
+using namespace cxx;
+
+void test_peczar1()
+{
+  unsigned long p1 = poset_new();
+
+  assert(poset_size(p1) == 0);
+  assert(poset_size(p1 + 1) == 0);
+  assert(!poset_insert(p1, NULL));
+  assert(poset_insert(p1, "A"));
+  assert(poset_test(p1, "A", "A"));
+  assert(!poset_insert(p1, "A"));
+  assert(!poset_insert(p1 + 1, "B"));
+  assert(poset_size(p1) == 1);
+  assert(!poset_remove(p1 + 1, "A"));
+  assert(poset_remove(p1, "A"));
+  assert(!poset_remove(p1, "A"));
+  assert(poset_insert(p1, "B"));
+  assert(poset_insert(p1, "C"));
+  assert(poset_add(p1, "B", "C"));
+  assert(!poset_remove(p1, "A"));
+  assert(!poset_add(p1, NULL, "X"));
+  assert(!poset_del(p1, NULL, "X"));
+  assert(!poset_test(p1, NULL, "X"));
+  assert(!poset_add(p1, "X", NULL));
+  assert(!poset_del(p1, "X", NULL));
+  assert(!poset_test(p1, "X", NULL));
+  assert(!poset_add(p1, NULL, NULL));
+  assert(!poset_del(p1, NULL, NULL));
+  assert(!poset_test(p1, NULL, NULL));
+  assert(!poset_add(p1, "C", "D"));
+  assert(!poset_add(p1, "D", "C"));
+  assert(!poset_add(p1, "D", "D"));
+  assert(!poset_add(p1, "E", "D"));
+  assert(!poset_del(p1, "C", "D"));
+  assert(!poset_del(p1, "D", "C"));
+  assert(!poset_del(p1, "D", "D"));
+  assert(!poset_del(p1, "E", "D"));
+  assert(!poset_test(p1, "C", "D"));
+  assert(!poset_test(p1, "D", "C"));
+  assert(!poset_test(p1, "D", "D"));
+  assert(!poset_test(p1, "E", "D"));
+  assert(!poset_add(p1 + 1, "C", "D"));
+  assert(!poset_del(p1 + 1, "C", "D"));
+  assert(!poset_test(p1 + 1, "C", "D"));
+  poset_clear(p1);
+  poset_clear(p1 + 1);
+  assert(poset_insert(p1, "E"));
+  assert(poset_insert(p1, "F"));
+  assert(poset_insert(p1, "G"));
+  assert(poset_add(p1, "E", "F"));
+  assert(!poset_add(p1, "E", "F"));
+  assert(!poset_add(p1, "F", "E"));
+  assert(poset_test(p1, "E", "F"));
+  assert(!poset_test(p1, "F", "E"));
+  assert(poset_add(p1, "F", "G"));
+  assert(poset_test(p1, "E", "G"));
+  assert(!poset_del(p1, "E", "G"));
+  assert(poset_del(p1, "E", "F"));
+  assert(!poset_del(p1, "E", "F"));
+  assert(!poset_del(p1, "G", "F"));
+  assert(!poset_del(p1, "G", "G"));
+  assert(poset_size(p1) == 3);
+  poset_delete(p1);
+  poset_delete(p1);
+  poset_delete(p1 + 1);
+}
+
+int main()
+{
+  test_peczar1();
+  return 0;
 }
