@@ -25,9 +25,8 @@ using std::string;
 using std::to_string;
 using std::unordered_map;
 using std::vector;
-
+using id_type = unsigned long;
 using idx_t = size_t;
-
 using poset_elem = string;
 using vectorOfStrings = vector<poset_elem>;
 using posetRelationsArray = vector<vector<int>>;
@@ -38,7 +37,6 @@ unordered_map<identificator, poset_t *> allPosets;
 
 namespace
 {
-  using id_t = unsigned long;
   const int RELATION = 1;
   const int NO_RELATION = -1;
   const int RELATION_TRANSITIVITY = 2;
@@ -332,7 +330,7 @@ namespace
       return "(" + s1 + ")";
   }
 
-  string getPosetIdErr(id_t id)
+  string getPosetIdErr(id_type id)
   {
     string str(": poset ");
     str = str + to_string(id);
@@ -356,7 +354,7 @@ namespace
     return ", " + s + " ";
   }
 
-  string relationErr(string fName, id_t id,
+  string relationErr(string fName, id_type id,
   char const *value1, char const *value2)
   {
     return fName + getPosetIdErr(id) + commaElemErr("relation") + 
@@ -365,7 +363,7 @@ namespace
 
 // functions that wrap the same debbugging cases
 
-void posetNotExistErr(string fName, id_t id)
+void posetNotExistErr(string fName, id_type id)
 {
   if constexpr (debug)
     {
@@ -373,7 +371,7 @@ void posetNotExistErr(string fName, id_t id)
     }
 }
 
-void elemNotExistErr(string fName, id_t id, char const *value)
+void elemNotExistErr(string fName, id_type id, char const *value)
 {
   if constexpr (debug)
   {
@@ -382,7 +380,7 @@ void elemNotExistErr(string fName, id_t id, char const *value)
   }
 }
 
-void elemExistErr(string fName, id_t id, char const *value)
+void elemExistErr(string fName, id_type id, char const *value)
 {
   if constexpr (debug)
         {
@@ -410,7 +408,7 @@ void oneValueNullErr(string fName, char const *value)
     }
 }
 
-void threeArgFuncNameErr(string fName, id_t id, char const *value1, char const *value2)
+void threeArgFuncNameErr(string fName, id_type id, char const *value1, char const *value2)
 {
   if constexpr (debug)
   {
@@ -419,7 +417,7 @@ void threeArgFuncNameErr(string fName, id_t id, char const *value1, char const *
   } 
 }
 
-void twoArgFuncNameErr(string fName, id_t id, char const *value)
+void twoArgFuncNameErr(string fName, id_type id, char const *value)
 {
   if constexpr (debug)
   {
@@ -427,7 +425,7 @@ void twoArgFuncNameErr(string fName, id_t id, char const *value)
   }
 }
 
-void oneArgFuncNameErr(string fName, id_t id)
+void oneArgFuncNameErr(string fName, id_type id)
 {
   if constexpr (debug)
   {
@@ -438,14 +436,14 @@ void oneArgFuncNameErr(string fName, id_t id)
   } 
 }
 
-void insertedErr(string fName, id_t id, char const *value)
+void insertedErr(string fName, id_type id, char const *value)
 {
   if constexpr (debug)
       cerr << fName << getPosetIdErr(id) << commaElemErr() << 
         getStrErr(value) << " inserted\n";
 }
 
-void containsErr(string fName, id_t id, size_t posetSize)
+void containsErr(string fName, id_type id, size_t posetSize)
 {
   if constexpr (debug)
     {
@@ -454,7 +452,7 @@ void containsErr(string fName, id_t id, size_t posetSize)
     }
 }
 
-void elemRemovedErr(string fName, id_t id, char const *value)
+void elemRemovedErr(string fName, id_type id, char const *value)
 {
   if constexpr (debug)
       {
@@ -463,7 +461,7 @@ void elemRemovedErr(string fName, id_t id, char const *value)
       }
 }
 
-void isRelationAddedErr(int isAdded, string fName, id_t id, 
+void isRelationAddedErr(int isAdded, string fName, id_type id, 
 char const *value1, char const *value2)
 {
   if constexpr (debug)
@@ -482,7 +480,7 @@ char const *value1, char const *value2)
   }
 }
 
-void isRelationDeletedErr(bool isDeleted, string fName, id_t id, 
+void isRelationDeletedErr(bool isDeleted, string fName, id_type id, 
 char const *value1, char const *value2)
 {
   if constexpr (debug)
@@ -500,7 +498,7 @@ char const *value1, char const *value2)
   }
 }
 
-void relationExistsErr(bool exists, string fName, id_t id, 
+void relationExistsErr(bool exists, string fName, id_type id, 
 char const *value1, char const *value2)
 {
   if constexpr (debug)
@@ -518,7 +516,7 @@ char const *value1, char const *value2)
   }
 }
 
-void stateOfPosetErr(string fName, id_t id)
+void stateOfPosetErr(string fName, id_type id)
 {
   if constexpr (debug)
   {
@@ -1046,7 +1044,7 @@ void TEST_poset_add_remove()
 
 void DETAILED_TEST_poset_remove()
 {
-  id_t id2 = poset_new();
+  id_type id2 = poset_new();
 
   assert(poset_insert(id2, "A") == true && "insert into id2 poset was not succesful\n");
   assert(poset_insert(id2, "B") == true && "insert into id2 poset was not succesful\n");
