@@ -25,9 +25,11 @@ using std::string;
 using std::to_string;
 using std::unordered_map;
 using std::vector;
+
 using posetID_t = unsigned long;
 using idx_t = size_t;
 using poset_elem = string;
+// using inputVal_t = char const;
 using vectorOfStrings = vector<poset_elem>;
 using posetRelationsArray = vector<vector<int>>;
 using identificator = unsigned long;
@@ -289,7 +291,7 @@ namespace
   }
 
   void addTransitivityRelations(posetRelationsArray *relationArr,
-                                size_t index1, size_t index2)
+                                idx_t index1, idx_t index2)
   {
     size_t nbrOfRows = relationArr->size();
     for (idx_t i = 0; i < nbrOfRows; i++)
@@ -577,7 +579,6 @@ unsigned long poset_new(void)
   return id;
 }
 
-// DONE
 void poset_delete(unsigned long id)
 {
   oneArgFuncNameErr(string(__func__), id);
@@ -595,7 +596,6 @@ void poset_delete(unsigned long id)
     posetNotExistErr(string(__func__), id);
 }
 
-// DONE
 size_t poset_size(unsigned long id)
 {
   oneArgFuncNameErr(string(__func__), id);
@@ -605,8 +605,6 @@ size_t poset_size(unsigned long id)
 
   if (it != allPosets.end())
   {
-    // poset_t = pair<vectorOfStrings*, posetRelationsArray*>;
-    // it->first = id, it->second = pair
     vectorOfStrings *v = it->second->first;
     sizeOfPoset = v->size();
 
