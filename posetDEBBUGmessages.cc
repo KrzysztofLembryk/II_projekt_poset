@@ -26,7 +26,7 @@ using std::to_string;
 using std::unordered_map;
 using std::vector;
 
-using index = size_t;
+using idx_t = size_t;
 
 using poset_elem = string;
 using vectorOfStrings = vector<poset_elem>;
@@ -139,7 +139,9 @@ namespace
   void checkIfElemExistInVecOfStr(vectorOfStrings *v, char const *value,
                                   size_t &idx, bool &exist)
   {
+    exist = false;
     size_t vSize = v->size();
+
     for (size_t i = 0; i < vSize; i++)
     {
       if ((*v)[i] == value)
@@ -151,33 +153,12 @@ namespace
     }
   }
 
-  // Function finds indexes of given values in vector that
-  // stores elements in poset. If element is not found its
-  // index is equal to -1.
-  void findIndexesOfGivenValues(long long &index1, long long &index2,
-                    char const *value1, char const *value2, vectorOfStrings *v)
-  {
-    index1 = NOT_FOUND;
-    index2 = NOT_FOUND;
-    size_t vSize = v->size();
-
-    for (index i = 0; i < vSize; i++)
-    {
-      if (v->at(i) == value1)
-        index1 = i;
-      if (v->at(i) == value2)
-        index2 = i;
-      if (index1 != NOT_FOUND && index2 != NOT_FOUND)
-        break;
-    }
-  }
-
   // Helper function for poset_del.
   // Function checks if there are elements between elements at idx1=A and idx2=B
   // and in relation with them. Meaning if exists C that A < C < B.
   // If such C exists function return true;
   bool somethingIsBetweenTwoElem(posetRelationsArray *relationArr,
-                                 long long idx1, long long idx2)
+                                 size_t idx1, size_t idx2)
   {
     size_t nbrOfRows = relationArr->size();
 
@@ -313,7 +294,7 @@ namespace
                                 size_t index1, size_t index2)
   {
     size_t nbrOfRows = relationArr->size();
-    for (index i = 0; i < nbrOfRows; i++)
+    for (idx_t i = 0; i < nbrOfRows; i++)
     {
       if (relationArr->at(i)[index1] == RELATION &&
           relationArr->at(i)[index2] == NO_RELATION)
@@ -761,7 +742,7 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
     vectorOfStrings *v = it->second->first;
 
     checkIfElemExistInVecOfStr(v, value1, index1, foundIndex1);
-    checkIfElemExistInVecOfStr(v, value1, index2, foundIndex2);
+    checkIfElemExistInVecOfStr(v, value2, index2, foundIndex2);
 
     // there is no element (value1 or value2) in a set
     if (!foundIndex1 || !foundIndex2)
@@ -824,16 +805,18 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
 
   if (iter != allPosets.end())
   {
-    long long index1, index2;
+    bool foundIdx1, foundIdx2;
+    idx_t index1, index2;
     vectorOfStrings *v = iter->second->first;
 
-    findIndexesOfGivenValues(index1, index2, value1, value2, v);
+    checkIfElemExistInVecOfStr(v, value1, index1, foundIdx1);
+    checkIfElemExistInVecOfStr(v, value2, index2, foundIdx2);
 
-    if (index1 == NOT_FOUND || index2 == NOT_FOUND)
+    if (!foundIdx1 || !foundIdx2)
     {
       if constexpr (debug)
       {
-        if (index1 == NOT_FOUND)
+        if (!foundIdx1)
           elemNotExistErr(string(__func__), id, value1);
         else
           elemNotExistErr(string(__func__), id, value2);
@@ -893,18 +876,19 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
 
   if (it != allPosets.end())
   {
-    long long index1;
-    long long index2;
+    idx_t index1, index2;
+    bool foundIdx1, foundIdx2;
     vectorOfStrings *v = it->second->first;
 
-    findIndexesOfGivenValues(index1, index2, value1, value2, v);
+    checkIfElemExistInVecOfStr(v, value1, index1, foundIdx1);
+    checkIfElemExistInVecOfStr(v, value2, index2, foundIdx2);
 
     // there is no element (value1 or value2) in a set
-    if (index1 == NO_RELATION || index2 == NO_RELATION)
+    if (!foundIdx1 || !foundIdx2)
     {
       if constexpr (debug)
       {
-        if (index1 == NOT_FOUND)
+        if (!foundIdx1)
           elemNotExistErr(string(__func__), id, value1);
         else
           elemNotExistErr(string(__func__), id, value2);
@@ -955,10 +939,13 @@ void poset_clear(unsigned long id)
 int getValOfTwoElemRelation(const char *val1, const char *val2, poset_t const *p)
 {
   vectorOfStrings *v = p->first;
-  long long idx1, idx2;
+  size_t idx1, idx2;
+  bool foundIdx1, foundIdx2;
 
-  findIndexesOfGivenValues(idx1, idx2, val1, val2, v);
-  if (idx1 == -1 || idx2 == -1)
+  checkIfElemExistInVecOfStr(v, val1, idx1, foundIdx1);
+  checkIfElemExistInVecOfStr(v, val2, idx2, foundIdx2);
+  
+  if (!foundIdx1 || !foundIdx2)
     return 2137;
 
   return p->second->at(idx1)[idx2];
