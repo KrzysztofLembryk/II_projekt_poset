@@ -137,6 +137,7 @@ namespace
   void checkIfElemExistInVecOfStr(vectorOfStrings *v, char const *value,
                                   idx_t &idx, bool &exist)
   {
+    idx = 0;
     exist = false;
     size_t vSize = v->size();
 
@@ -403,7 +404,8 @@ void twoValueNullErr(string fName, char const *value1, char const *value2)
 void oneValueNullErr(string fName, char const *value)
 {
   if constexpr (debug)
-    {     
+    {    
+      value = value;
       cerr << fName << invalidValErr(GET_VAR_NAME(value));
     }
 }
@@ -965,6 +967,9 @@ void TEST_poset_new_delete_insert_add()
 
   assert(id2 == 1 && "id2 should equal 1\n");
 
+  poset_delete(id3);
+  poset_delete(id4);
+
   cout << "INSERT SECTION TEST: \n";
 
   assert(poset_insert(id1, "xd") == false && "poset id1 does not exist, but inserting was a success - WRONG\n");
@@ -1014,7 +1019,7 @@ void TEST_poset_add_remove()
 {
   idx_t id1, id2;
   initPoset(id1, id2);
-  int nbrOfPosetElem_id2 = allPosets[id2]->first->size();
+  size_t nbrOfPosetElem_id2 = allPosets[id2]->first->size();
 
   assert(poset_add(id2, "A", "B") == true);
   assert(poset_add(id2, "A", "C") == true);
