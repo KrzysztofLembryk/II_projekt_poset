@@ -96,7 +96,7 @@ namespace
   // where elem_to_remove < elem2, than relation between elem1 < elem2
   // is removed.
   void deleteRelationsTransitivity(posetRelationsArray *relArr,
-                                   size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
+                size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
   {
     if (relArr->at(currentElem)[idxOfElemToDelete] == RELATION ||
         relArr->at(currentElem)[idxOfElemToDelete] == RELATION_TRANSITIVITY)
@@ -120,7 +120,7 @@ namespace
   // elem2 < elem_to_delete and if elem2 < elem1 transitivity
   // it deletes relation.
   void deleteRelationsLarger(posetRelationsArray *relArr,
-                             size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
+                size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
   {
     if (relArr->at(currentElem)[idxOfElemToDelete] == RELATION_IM_LARGER)
     {
@@ -155,7 +155,7 @@ namespace
   // stores elements in poset. If element is not found its
   // index is equal to -1.
   void findIndexesOfGivenValues(long long &index1, long long &index2,
-                                char const *value1, char const *value2, vectorOfStrings *v)
+                    char const *value1, char const *value2, vectorOfStrings *v)
   {
     index1 = NOT_FOUND;
     index2 = NOT_FOUND;
@@ -177,7 +177,7 @@ namespace
   // and in relation with them. Meaning if exists C that A < C < B.
   // If such C exists function return true;
   bool somethingIsBetweenTwoElem(posetRelationsArray *relationArr,
-                                 long long const idx1, long long const idx2)
+                                 long long idx1, long long idx2)
   {
     size_t nbrOfRows = relationArr->size();
 
@@ -203,16 +203,14 @@ namespace
   // that are smaller than idx1. Meaning if exists A1,...,An that
   // A1 < elemIdx1, ..., An < elemIdx1. If such elements exist
   // function returns true.
-  bool isAnythingOnTheLeft(posetRelationsArray *relArr, long long const idx1)
+  bool isAnythingOnTheLeft(posetRelationsArray *relArr, long long idx1)
   {
     size_t nbrOfCol = relArr->at(idx1).size();
 
     for (size_t i = 0; i < nbrOfCol; i++)
     {
       if (relArr->at(idx1)[i] == RELATION_IM_LARGER)
-      {
         return true;
-      }
     }
     return false;
   }
@@ -222,7 +220,7 @@ namespace
   // that are larger than elemIdx2. Meaning if exists A1,...,An that
   // elemIdx1 < A1 , ..., elemIdx1 < An. If such elements exist
   // function returns true.
-  bool isAnythingOnTheRight(posetRelationsArray *relArr, long long const idx2)
+  bool isAnythingOnTheRight(posetRelationsArray *relArr, long long idx2)
   {
     size_t nbrOfCol = relArr->at(idx2).size();
 
@@ -312,7 +310,7 @@ namespace
   }
 
   void addTransitivityRelations(posetRelationsArray *relationArr,
-                                long long const index1, long long const index2)
+                                size_t index1, size_t index2)
   {
     size_t nbrOfRows = relationArr->size();
     for (index i = 0; i < nbrOfRows; i++)
@@ -758,20 +756,21 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
 
   if (it != allPosets.end())
   {
-    long long index1;
-    long long index2;
+    bool foundIndex1, foundIndex2;
+    size_t index1, index2;
     vectorOfStrings *v = it->second->first;
 
-    findIndexesOfGivenValues(index1, index2, value1, value2, v);
+    checkIfElemExistInVecOfStr(v, value1, index1, foundIndex1);
+    checkIfElemExistInVecOfStr(v, value1, index2, foundIndex2);
 
     // there is no element (value1 or value2) in a set
-    if (index1 == NOT_FOUND || index2 == NOT_FOUND)
+    if (!foundIndex1 || !foundIndex2)
     {
       if constexpr (debug)
       {
         char const *val;
 
-        if (index1 == NOT_FOUND)
+        if (!foundIndex1)
           val = value1;
         else
           val = value2;
