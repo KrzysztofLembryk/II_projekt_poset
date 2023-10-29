@@ -339,7 +339,7 @@ namespace
   #define GET_VAR_NAME(x) #x
 
   // functions for printing debbugging messages
-  string getErrStr(char const *val)
+  string getStrErr(char const *val)
   {
     if (val == nullptr)
       return "NULL";
@@ -349,7 +349,7 @@ namespace
     return str;
   }
 
-  string getErrPair(string const &s1, string const &s2 = "")
+  string getPairErr(string const &s1, string const &s2 = "")
   {
     if (!s2.empty())
       return "(" + s1 + ", " + s2 + ") ";
@@ -357,26 +357,26 @@ namespace
       return "(" + s1 + ")";
   }
 
-  string getErrPosetId(unsigned long id)
+  string getPosetIdErr(unsigned long id)
   {
     string str(": poset ");
     str = str + to_string(id);
     return str;
   }
 
-  string lastErrExpr(string s = "does not exist")
+  string lastExprErr(string s = "does not exist")
   {
     return " " + s + "\n";
   }
 
-  string invalidVal(char const *type)
+  string invalidValErr(char const *type)
   {
     string str(type);
 
     return ": invalid " + str + " (NULL)\n";
   }
 
-  string commaElem(string s = "element")
+  string commaElemErr(string s = "element")
   {
     return ", " + s + " ";
   }
@@ -387,7 +387,7 @@ void posetNotExistErr(string fName, unsigned long id)
 {
   if constexpr (debug)
     {
-      cerr << fName << getErrPosetId(id) << lastErrExpr();
+      cerr << fName << getPosetIdErr(id) << lastExprErr();
     }
 }
 
@@ -396,9 +396,9 @@ void twoValueNullErr(string fName, char const *value1, char const *value2)
   if constexpr (debug)
     {
       if (value1 == nullptr)
-        cerr << fName << invalidVal(GET_VAR_NAME(value1));
+        cerr << fName << invalidValErr(GET_VAR_NAME(value1));
       if (value2 == nullptr)
-        cerr << fName << invalidVal(GET_VAR_NAME(value2));
+        cerr << fName << invalidValErr(GET_VAR_NAME(value2));
     }
 }
 
@@ -406,7 +406,7 @@ void oneValueNullErr(string fName, char const *value)
 {
   if constexpr (debug)
     {
-      cerr << fName << invalidVal(GET_VAR_NAME(value));
+      cerr << fName << invalidValErr(GET_VAR_NAME(value));
     }
 }
 
@@ -414,8 +414,8 @@ void threeArgFuncNameErr(string fName, unsigned long id, char const *value1, cha
 {
   if constexpr (debug)
   {
-    cerr << fName << getErrPair(to_string(id),
-    getErrStr(value1) + ", " + getErrStr(value2)) << "\n";
+    cerr << fName << getPairErr(to_string(id),
+    getStrErr(value1) + ", " + getStrErr(value2)) << "\n";
   }
 }
 
@@ -423,7 +423,7 @@ void twoArgFuncNameErr(string fName, unsigned long id, char const *value)
 {
   if constexpr (debug)
   {
-    cerr << fName << getErrPair(to_string(id), getErrStr(value)) << "\n";
+    cerr << fName << getPairErr(to_string(id), getStrErr(value)) << "\n";
   }
 }
 
@@ -434,7 +434,7 @@ void oneArgFuncNameErr(string fName, unsigned long id)
     if (fName == "poset_new")
       cerr << fName << "()\n";
     else
-      cerr << fName << getErrPair(to_string(id)) << "\n";
+      cerr << fName << getPairErr(to_string(id)) << "\n";
   }
 }
 
@@ -494,7 +494,7 @@ unsigned long poset_new(void)
 
   if constexpr (debug)
   {
-    cerr << __func__ << getErrPosetId(id) << " created\n";
+    cerr << __func__ << getPosetIdErr(id) << " created\n";
   }
 
   return id;
@@ -516,7 +516,7 @@ void poset_delete(unsigned long id)
 
     if constexpr (debug)
     {
-      cerr << __func__ << getErrPosetId(id) << " deleted\n";
+      cerr << __func__ << getPosetIdErr(id) << " deleted\n";
     }
   }
   else
@@ -540,7 +540,7 @@ size_t poset_size(unsigned long id)
     sizeOfPoset = v->size();
     if constexpr (debug)
     {
-      cerr << __func__ << getErrPosetId(id) << " contains " <<
+      cerr << __func__ << getPosetIdErr(id) << " contains " <<
       sizeOfPoset << " element(s)\n";
     }
   }
@@ -573,7 +573,7 @@ bool poset_insert(unsigned long id, char const *value)
       {
         if constexpr (debug)
         {
-          cerr << __func__ << getErrPosetId(id) << commaElem() << getErrStr(value) << " already exists\n";
+          cerr << __func__ << getPosetIdErr(id) << commaElemErr() << getStrErr(value) << " already exists\n";
         }
 
         return false;
@@ -595,7 +595,7 @@ bool poset_insert(unsigned long id, char const *value)
     p->at(p->size() - 1)[p->size() - 1] = RELATION;
 
     if constexpr (debug)
-      cerr << __func__ << getErrPosetId(id) << commaElem() << getErrStr(value) << " inserted\n";
+      cerr << __func__ << getPosetIdErr(id) << commaElemErr() << getStrErr(value) << " inserted\n";
 
     return true;
   }
@@ -650,7 +650,7 @@ bool poset_remove(unsigned long id, char const *value)
 
       if constexpr (debug)
       {
-        cerr << __func__ << getErrPosetId(id) << commaElem() << getErrStr(value) << " removed\n";
+        cerr << __func__ << getPosetIdErr(id) << commaElemErr() << getStrErr(value) << " removed\n";
       }
 
       return true;
@@ -659,7 +659,7 @@ bool poset_remove(unsigned long id, char const *value)
     {
       if constexpr (debug)
       {
-        cerr << __func__ << getErrPosetId(id) << commaElem() << getErrStr(value) << lastErrExpr();
+        cerr << __func__ << getPosetIdErr(id) << commaElemErr() << getStrErr(value) << lastExprErr();
       }
     }
   }
@@ -703,7 +703,7 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
         else
           val = value2;
 
-        cerr << __func__ << getErrPosetId(id) << commaElem() << getErrStr(val) << lastErrExpr();
+        cerr << __func__ << getPosetIdErr(id) << commaElemErr() << getStrErr(val) << lastExprErr();
       }
 
       return false;
@@ -718,8 +718,8 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
       {
         if constexpr (debug)
         {
-          cerr << __func__ << getErrPosetId(id) << commaElem("relation") <<
-          getErrPair(getErrStr(value1), getErrStr(value2)) << "cannot be added\n";
+          cerr << __func__ << getPosetIdErr(id) << commaElemErr("relation") <<
+          getPairErr(getStrErr(value1), getStrErr(value2)) << "cannot be added\n";
         }
         return false;
       }
@@ -733,7 +733,7 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
         addTransitivityRelations(relationArr, index1, index2);
 
         if constexpr (debug)
-          cerr << __func__ << getErrPosetId(id) << commaElem("relation") << getErrPair(getErrStr(value1), getErrStr(value2)) << "added\n";
+          cerr << __func__ << getPosetIdErr(id) << commaElemErr("relation") << getPairErr(getStrErr(value1), getStrErr(value2)) << "added\n";
 
         return true;
       }
@@ -853,7 +853,7 @@ void poset_clear(unsigned long id)
     p->clear();
 
     if constexpr (debug)
-      cerr << __func__ << getErrPosetId(id) << " cleared\n";
+      cerr << __func__ << getPosetIdErr(id) << " cleared\n";
   }
   else
     posetNotExistErr(string(__func__), id);;
