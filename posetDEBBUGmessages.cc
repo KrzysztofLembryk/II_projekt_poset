@@ -27,7 +27,7 @@ using std::unordered_map;
 using std::vector;
 
 using index = size_t;
-using id_t = unsigned long;
+
 using poset_elem = string;
 using vectorOfStrings = vector<poset_elem>;
 using posetRelationsArray = vector<vector<int>>;
@@ -38,6 +38,7 @@ unordered_map<identificator, poset_t *> allPosets;
 
 namespace
 {
+  using id_t = unsigned long;
   const int RELATION = 1;
   const int NO_RELATION = -1;
   const int RELATION_TRANSITIVITY = 2;
@@ -407,7 +408,7 @@ void elemExistErr(string fName, id_t id, char const *value)
 {
   if constexpr (debug)
         {
-          cerr << __func__ << getPosetIdErr(id) << commaElemErr() <<
+          cerr << fName << getPosetIdErr(id) << commaElemErr() <<
            getStrErr(value) << " already exists\n";
         }
 }
@@ -462,7 +463,7 @@ void oneArgFuncNameErr(string fName, id_t id)
 void insertedErr(string fName, id_t id, char const *value)
 {
   if constexpr (debug)
-      cerr << __func__ << getPosetIdErr(id) << commaElemErr() << 
+      cerr << fName << getPosetIdErr(id) << commaElemErr() << 
         getStrErr(value) << " inserted\n";
 }
 
