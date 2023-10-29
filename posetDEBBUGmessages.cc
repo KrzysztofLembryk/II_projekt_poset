@@ -27,6 +27,7 @@ using std::unordered_map;
 using std::vector;
 
 using index = size_t;
+using id_t = unsigned long;
 using poset_elem = string;
 using vectorOfStrings = vector<poset_elem>;
 using posetRelationsArray = vector<vector<int>>;
@@ -347,12 +348,12 @@ namespace
   string getPairErr(string const &s1, string const &s2 = "")
   {
     if (!s2.empty())
-      return "(" + s1 + ", " + s2 + ") ";
+      return "(" + s1 + ", " + s2 + ")";
     else
       return "(" + s1 + ")";
   }
 
-  string getPosetIdErr(unsigned long id)
+  string getPosetIdErr(id_t id)
   {
     string str(": poset ");
     str = str + to_string(id);
@@ -376,10 +377,16 @@ namespace
     return ", " + s + " ";
   }
 
+  string relationErr(string fName, id_t id,
+  char const *value1, char const *value2)
+  {
+    return fName + getPosetIdErr(id) + commaElemErr("relation") + 
+        getPairErr(getStrErr(value1), getStrErr(value2));
+  }
 
 // functions that wrap the same debbugging cases
 
-void posetNotExistErr(string fName, unsigned long id)
+void posetNotExistErr(string fName, id_t id)
 {
   if constexpr (debug)
     {
@@ -387,7 +394,7 @@ void posetNotExistErr(string fName, unsigned long id)
     }
 }
 
-void elemNotExistErr(string fName, unsigned long id, char const *value)
+void elemNotExistErr(string fName, id_t id, char const *value)
 {
   if constexpr (debug)
   {
@@ -396,7 +403,7 @@ void elemNotExistErr(string fName, unsigned long id, char const *value)
   }
 }
 
-void elemExistErr(string fName, unsigned long id, char const *value)
+void elemExistErr(string fName, id_t id, char const *value)
 {
   if constexpr (debug)
         {
@@ -424,7 +431,7 @@ void oneValueNullErr(string fName, char const *value)
     }
 }
 
-void threeArgFuncNameErr(string fName, unsigned long id, char const *value1, char const *value2)
+void threeArgFuncNameErr(string fName, id_t id, char const *value1, char const *value2)
 {
   if constexpr (debug)
   {
@@ -433,7 +440,7 @@ void threeArgFuncNameErr(string fName, unsigned long id, char const *value1, cha
   } 
 }
 
-void twoArgFuncNameErr(string fName, unsigned long id, char const *value)
+void twoArgFuncNameErr(string fName, id_t id, char const *value)
 {
   if constexpr (debug)
   {
@@ -441,7 +448,7 @@ void twoArgFuncNameErr(string fName, unsigned long id, char const *value)
   }
 }
 
-void oneArgFuncNameErr(string fName, unsigned long id)
+void oneArgFuncNameErr(string fName, id_t id)
 {
   if constexpr (debug)
   {
@@ -452,14 +459,14 @@ void oneArgFuncNameErr(string fName, unsigned long id)
   } 
 }
 
-void insertedErr(string fName, unsigned long id, char const *value)
+void insertedErr(string fName, id_t id, char const *value)
 {
   if constexpr (debug)
       cerr << __func__ << getPosetIdErr(id) << commaElemErr() << 
         getStrErr(value) << " inserted\n";
 }
 
-void containsErr(string fName, unsigned long id, size_t posetSize)
+void containsErr(string fName, id_t id, size_t posetSize)
 {
   if constexpr (debug)
     {
@@ -468,7 +475,7 @@ void containsErr(string fName, unsigned long id, size_t posetSize)
     }
 }
 
-void elemRemovedErr(string fName, unsigned long id, char const *value)
+void elemRemovedErr(string fName, id_t id, char const *value)
 {
   if constexpr (debug)
       {
@@ -477,23 +484,77 @@ void elemRemovedErr(string fName, unsigned long id, char const *value)
       }
 }
 
-void isRelationAddedErr(int isAdded, string fName, unsigned long id, 
+void isRelationAddedErr(int isAdded, string fName, id_t id, 
 char const *value1, char const *value2)
 {
   if constexpr (debug)
   {
     if (isAdded == NO_RELATION)
     {
-      cerr << fName << getPosetIdErr(id) << commaElemErr("relation") << 
-        getPairErr(getStrErr(value1), getStrErr(value2)) << "cannot be added\n";
+      cerr << relationErr(fName, id, value1, value2) << 
+        lastExprErr("cannot be added");
     }
     else if (isAdded == RELATION)
     {
-      cerr << fName << getPosetIdErr(id) << commaElemErr("relation") << 
-            getPairErr(getStrErr(value1), getStrErr(value2)) << "added\n";
+      cerr << relationErr(fName, id, value1, value2) << 
+      lastExprErr("added");
     }
     
   }
+}
+
+void isRelationDeletedErr(bool isDeleted, string fName, id_t id, 
+char const *value1, char const *value2)
+{
+  if constexpr (debug)
+  {
+    if(isDeleted)
+    {
+      cerr << relationErr(fName, id, value1, value2) << 
+        lastExprErr("deleted");
+    }
+    else
+    {
+      cerr << relationErr(fName, id, value1, value2) << 
+        lastExprErr("cannot be deleted");
+    }
+  }
+}
+
+void relationExistsErr(bool exists, string fName, id_t id, 
+char const *value1, char const *value2)
+{
+  if constexpr (debug)
+  {
+    if(exists)
+    {
+      cerr << relationErr(fName, id, value1, value2) << 
+        lastExprErr("exists");
+    }
+    else
+    {
+      cerr << relationErr(fName, id, value1, value2) << 
+        lastExprErr();
+    }
+  }
+}
+
+void stateOfPosetErr(string fName, id_t id)
+{
+  if constexpr (debug)
+  {
+    string str;
+
+    if (fName == "poset_new")
+      str = "created";
+    else if (fName == "poset_clear")
+      str = "cleared";
+    else
+      str = "deleted";
+    
+    cerr << __func__ << getPosetIdErr(id) << lastExprErr(str);
+  }
+  
 }
 
 }
@@ -528,16 +589,11 @@ unsigned long poset_new(void)
   poset_t *newPoset = new poset_t;
   vectorOfStrings *newVecOfPosetElem = new vectorOfStrings;
   posetRelationsArray *newRelationsArr = new posetRelationsArray;
-
   newPoset->first = newVecOfPosetElem;
   newPoset->second = newRelationsArr;
 
   allPosets.insert({id, newPoset});
-
-  if constexpr (debug)
-  {
-    cerr << __func__ << getPosetIdErr(id) << " created\n";
-  }
+  stateOfPosetErr(string(__func__), id);
 
   return id;
 }
@@ -554,11 +610,7 @@ void poset_delete(unsigned long id)
     delete it->second->first;
     delete it->second->second;
     allPosets.erase(it);
-
-    if constexpr (debug)
-    {
-      cerr << __func__ << getPosetIdErr(id) << " deleted\n";
-    }
+    stateOfPosetErr(string(__func__), id);
   }
   else
     posetNotExistErr(string(__func__), id);
@@ -791,13 +843,9 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
     else if (index1 == index2)
     {
       // poset_del: poset 0, relation ("E", "G") cannot be deleted
-      if constexpr (debug)
-      {
-        cerr << __func__ << getPosetIdErr(id);
-      }
+      isRelationDeletedErr(false, string(__func__), id, value1, value2);
       return false;
     }
-      
     else
     {
       posetRelationsArray *relationArr = iter->second->second;
@@ -817,9 +865,12 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
           else
             poset_del_IsOnTheRight(relationArr, index1, index2);
 
+          isRelationDeletedErr(true, string(__func__), id, value1, value2);
+
           return true;
         }
       }
+      isRelationDeletedErr(false, string(__func__), id, value1, value2);
     }
   }
   else
@@ -865,8 +916,14 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
       posetRelationsArray *p = it->second->second;
 
       // if there is an edge between value1 and value2 (relation or realation transitivity)
-      if (p->at(index1)[index2] == RELATION || p->at(index1)[index2] == RELATION_TRANSITIVITY)
+      if (p->at(index1)[index2] == RELATION || 
+        p->at(index1)[index2] == RELATION_TRANSITIVITY)
+      {
+        relationExistsErr(true, string(__func__), id, value1, value2);
         return true;
+      }
+
+      relationExistsErr(false, string(__func__), id, value1, value2);
     }
   }
   else
@@ -887,9 +944,7 @@ void poset_clear(unsigned long id)
     posetRelationsArray *p = it->second->second;
     v->clear();
     p->clear();
-
-    if constexpr (debug)
-      cerr << __func__ << getPosetIdErr(id) << " cleared\n";
+    stateOfPosetErr(string(__func__), id);
   }
   else
     posetNotExistErr(string(__func__), id);;
