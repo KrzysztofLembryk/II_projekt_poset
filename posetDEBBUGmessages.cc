@@ -552,7 +552,7 @@ void stateOfPosetErr(string fName, id_t id)
     else
       str = "deleted";
     
-    cerr << __func__ << getPosetIdErr(id) << lastExprErr(str);
+    cerr << fName << getPosetIdErr(id) << lastExprErr(str);
   }
   
 }
