@@ -96,7 +96,7 @@ namespace
   // where elem_to_remove < elem2, than relation between elem1 < elem2
   // is removed.
   void deleteRelationsTransitivity(posetRelationsArray *relArr,
-                size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
+                idx_t currentElem, idx_t idxOfElemToDelete, size_t nbrOfRows)
   {
     if (relArr->at(currentElem)[idxOfElemToDelete] == RELATION ||
         relArr->at(currentElem)[idxOfElemToDelete] == RELATION_TRANSITIVITY)
@@ -120,7 +120,7 @@ namespace
   // elem2 < elem_to_delete and if elem2 < elem1 transitivity
   // it deletes relation.
   void deleteRelationsLarger(posetRelationsArray *relArr,
-                size_t currentElem, size_t idxOfElemToDelete, size_t nbrOfRows)
+                idx_t currentElem, idx_t idxOfElemToDelete, size_t nbrOfRows)
   {
     if (relArr->at(currentElem)[idxOfElemToDelete] == RELATION_IM_LARGER)
     {
@@ -137,7 +137,7 @@ namespace
   }
 
   void checkIfElemExistInVecOfStr(vectorOfStrings *v, char const *value,
-                                  size_t &idx, bool &exist)
+                                  idx_t &idx, bool &exist)
   {
     exist = false;
     size_t vSize = v->size();
@@ -158,11 +158,11 @@ namespace
   // and in relation with them. Meaning if exists C that A < C < B.
   // If such C exists function return true;
   bool somethingIsBetweenTwoElem(posetRelationsArray *relationArr,
-                                 size_t idx1, size_t idx2)
+                                 idx_t idx1, idx_t idx2)
   {
     size_t nbrOfRows = relationArr->size();
 
-    for (size_t i = 0; i < nbrOfRows; i++)
+    for (idx_t i = 0; i < nbrOfRows; i++)
     {
       if (i != idx1 && i != idx2)
       {
@@ -184,7 +184,7 @@ namespace
   // that are smaller than idx1. Meaning if exists A1,...,An that
   // A1 < elemIdx1, ..., An < elemIdx1. If such elements exist
   // function returns true.
-  bool isAnythingOnTheLeft(posetRelationsArray *relArr, long long idx1)
+  bool isAnythingOnTheLeft(posetRelationsArray *relArr, idx_t idx1)
   {
     size_t nbrOfCol = relArr->at(idx1).size();
 
@@ -201,7 +201,7 @@ namespace
   // that are larger than elemIdx2. Meaning if exists A1,...,An that
   // elemIdx1 < A1 , ..., elemIdx1 < An. If such elements exist
   // function returns true.
-  bool isAnythingOnTheRight(posetRelationsArray *relArr, long long idx2)
+  bool isAnythingOnTheRight(posetRelationsArray *relArr, idx_t idx2)
   {
     size_t nbrOfCol = relArr->at(idx2).size();
 
@@ -227,9 +227,8 @@ namespace
   //    B < elemIdx1 < elemIdx2 < C. So allowed situations are:
   //    .... < elemIdx1 < elemIdx2 or elemIdx1 < elemIdx2 < ....
   // function returns true when all above conditions are met.
-  bool relationGoodToDelete(posetRelationsArray *relationArr,
-                            long long const idx1, long long const idx2,
-                            bool &isOnTheLeft, bool &isOnTheRight)
+  bool relationGoodToDelete(posetRelationsArray *relationArr, idx_t idx1, 
+                        idx_t idx2, bool &isOnTheLeft, bool &isOnTheRight)
   {
     if (!somethingIsBetweenTwoElem(relationArr, idx1, idx2))
     {
@@ -251,7 +250,7 @@ namespace
   // It deletes transitivity relations between elemIdx2 and elements that
   // are < elemIdx1 and have transitivity relation with elemIdx2.
   void poset_del_IsOnTheLeft(posetRelationsArray *relArr,
-                             long long const idx1, long long const idx2)
+                             idx_t idx1, idx_t idx2)
   {
     size_t nbrOfRows = relArr->at(idx2).size();
 
@@ -273,7 +272,7 @@ namespace
   // It deletes im_larger relations between elemIdx1 and elements that
   // are > elemIdx2 and have Im_larger relation with elemIdx1.
   void poset_del_IsOnTheRight(posetRelationsArray *relArr,
-                              long long const idx1, long long const idx2)
+                              idx_t idx1, idx_t idx2)
   {
     size_t nbrOfRows = relArr->at(idx2).size();
 
@@ -998,7 +997,7 @@ void TEST_poset_new_delete_insert_add()
   printArrOfRelations(*allPosets[id2]->second);
 }
 
-void initPoset(long long &id1, long long &id2)
+void initPoset(idx_t &id1, idx_t &id2)
 {
   id1 = poset_new();
   id2 = poset_new();
@@ -1015,7 +1014,7 @@ void initPoset(long long &id1, long long &id2)
 
 void TEST_poset_add_remove()
 {
-  long long id1, id2;
+  idx_t id1, id2;
   initPoset(id1, id2);
   int nbrOfPosetElem_id2 = allPosets[id2]->first->size();
 
@@ -1047,7 +1046,7 @@ void TEST_poset_add_remove()
 
 void DETAILED_TEST_poset_remove()
 {
-  long long id2 = poset_new();
+  id_t id2 = poset_new();
 
   assert(poset_insert(id2, "A") == true && "insert into id2 poset was not succesful\n");
   assert(poset_insert(id2, "B") == true && "insert into id2 poset was not succesful\n");
