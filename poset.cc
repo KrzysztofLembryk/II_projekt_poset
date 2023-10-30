@@ -48,6 +48,12 @@ namespace
   const int RELATION_IM_LARGER = 3;
   const int NOT_FOUND = -1;
 
+  allPosetsMap &getAllPosets()
+{
+  static allPosetsMap allPosets; //= init_posets();
+  return allPosets;
+}
+
   void printVectorOfStrings(vectorOfStrings const &vec)
   {
     size_t n = vec.size();
@@ -546,11 +552,7 @@ void stateOfPosetErr(string fName, posetID_t id)
 }
 
 namespace cxx {
-  allPosetsMap &getAllPosets()
-{
-  static allPosetsMap allPosets; //= init_posets();
-  return allPosets;
-}
+  
 // tylko zeby bylo teraz, przypisuje id zawsze o 1 wiekszy od najwyzszego id.
 unsigned long poset_new(void)
 {
