@@ -1,4 +1,4 @@
-#include <iostream>
+//#include <iostream>
 #include <string>
 #include <unordered_map>
 #include <list>
@@ -517,8 +517,10 @@ unsigned long poset_new(void)
 {
   auto &allPosets = getAllPosets();
   unsigned long id = 0;
-  if constexpr (debug)
+  
+  #if debug
     oneArgFuncNameErr(string(__func__), id);
+  #endif
 
   if (!allPosets.empty())
   {
@@ -547,16 +549,19 @@ unsigned long poset_new(void)
   newPoset->second = newRelationsArr;
 
   allPosets.insert({id, newPoset});
-  if constexpr (debug)
+
+  #if debug
     stateOfPosetErr(string(__func__), id);
+  #endif
 
   return id;
 }
 
 void poset_delete(unsigned long id)
 {
-  if constexpr (debug)
+  #if debug
     oneArgFuncNameErr(string(__func__), id);
+  #endif
 
   auto &allPosets = getAllPosets();
 
@@ -568,21 +573,24 @@ void poset_delete(unsigned long id)
     delete it->second->second;
     allPosets.erase(it);
 
-    if constexpr (debug)
+    #if debug
       stateOfPosetErr(string(__func__), id);
+    #endif
   }
   else
   {
-    if constexpr (debug)
+    #if debug
       posetNotExistErr(string(__func__), id);
+    #endif
   }
     
 }
 
 size_t poset_size(unsigned long id)
 {
-  if constexpr (debug)
+  #if debug
     oneArgFuncNameErr(string(__func__), id);
+  #endif
 
   auto &allPosets = getAllPosets();
 
@@ -593,13 +601,15 @@ size_t poset_size(unsigned long id)
   {
     vectorOfStrings *v = it->second->first;
     sizeOfPoset = v->size();
-    if constexpr (debug)
+    #if debug
       containsErr(string(__func__), id, sizeOfPoset);
+    #endif
   }
   else
   {
-    if constexpr (debug)
+    #if debug
       posetNotExistErr(string(__func__), id);
+    #endif
   }
     
 
@@ -608,15 +618,17 @@ size_t poset_size(unsigned long id)
 
 bool poset_insert(unsigned long id, char const *value)
 {
-  if constexpr (debug)
+  #if debug
     twoArgFuncNameErr(string(__func__), id, value);
+  #endif
 
   auto &allPosets = getAllPosets();
 
   if (value == nullptr)
   {
-    if constexpr (debug)
+    #if debug
       oneValueNullErr(string(__func__), value); 
+    #endif
     
     return false;
   }
@@ -631,8 +643,10 @@ bool poset_insert(unsigned long id, char const *value)
     {
       if (str == value)
       {
-        if constexpr (debug)
+        #if debug
           elemExistErr(string(__func__), id, value);
+        #endif
+
         return false;
       }
     }
@@ -651,15 +665,17 @@ bool poset_insert(unsigned long id, char const *value)
     // element is in relation with itself
     p->at(p->size() - 1)[p->size() - 1] = RELATION;
 
-    if constexpr (debug)
+    #if debug
       insertedErr(string(__func__), id, value);
+    #endif
 
     return true;
   }
   else
   {
-    if constexpr (debug)
+    #if debug
       posetNotExistErr(string(__func__), id);
+    #endif
   }
     
 
@@ -668,15 +684,18 @@ bool poset_insert(unsigned long id, char const *value)
 
 bool poset_remove(unsigned long id, char const *value)
 {
-  if constexpr (debug)
+  #if debug
     twoArgFuncNameErr(string(__func__), id, value);
+  #endif
 
   auto &allPosets = getAllPosets();
 
   if (value == nullptr)
   {
-    if constexpr (debug)
+    #if debug
       oneValueNullErr(string(__func__), value);
+    #endif
+
     return false;
   }
 
@@ -712,22 +731,25 @@ bool poset_remove(unsigned long id, char const *value)
 
       relationArr->erase(relationArr->begin() + idxOfElem);
 
-      if constexpr (debug)
+      #if debug
         elemRemovedErr(string(__func__), id, value);
+      #endif
 
       return true;
     }
     else
     {
-      if constexpr (debug)
+      #if debug
         elemNotExistErr(string(__func__), id, value);
+      #endif
     }
       
   }
   else
   {
-    if constexpr (debug)
+    #if debug
       posetNotExistErr(string(__func__), id);
+    #endif
   }
     
   
@@ -736,15 +758,18 @@ bool poset_remove(unsigned long id, char const *value)
 
 bool poset_add(unsigned long id, char const *value1, char const *value2)
 {
-  if constexpr (debug)
+  #if debug
     threeArgFuncNameErr(string(__func__), id, value1, value2);
+  #endif
 
   auto &allPosets = getAllPosets();
   
   if (value1 == nullptr || value2 == nullptr)
   {
-    if constexpr (debug)
+    #if debug
       twoValueNullErr(string(__func__), value1, value2);
+    #endif
+
     return false;
   }
 
@@ -771,8 +796,9 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
         else
           val = value2;
 
-        if constexpr (debug)
+        #if debug
           elemNotExistErr(string(__func__), id, val);
+        #endif
       }
       return false;
     }
@@ -784,8 +810,9 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
       if (relationArr->at(index1)[index2] == RELATION ||
           relationArr->at(index2)[index1] == RELATION)
       {
-        if constexpr (debug)
+        #if debug
           isRelationAddedErr(NO_RELATION, string(__func__), id, value1, value2);
+        #endif
         
         return false;
       }
@@ -798,8 +825,9 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
         // now add edges that will result from transitivity
         addTransitivityRelations(relationArr, index1, index2);
 
-        if constexpr (debug)
+        #if debug
           isRelationAddedErr(RELATION, string(__func__), id, value1, value2);
+        #endif
 
         return true;
       }
@@ -807,8 +835,9 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
   }
   else
   {
-    if constexpr (debug)
+    #if debug
       posetNotExistErr(string(__func__), id);
+    #endif
   }
     
 
@@ -817,15 +846,18 @@ bool poset_add(unsigned long id, char const *value1, char const *value2)
 
 bool poset_del(unsigned long id, char const *value1, char const *value2)
 {
-  if constexpr (debug)
+  #if debug
     threeArgFuncNameErr(string(__func__), id, value1, value2);
+  #endif
 
   auto &allPosets = getAllPosets();
 
   if (value1 == nullptr || value2 == nullptr)
   {
-    if constexpr (debug)
+    #if debug
       twoValueNullErr(string(__func__), value1, value2);
+    #endif
+
     return false;
   }
   
@@ -842,20 +874,21 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
 
     if (!foundIdx1 || !foundIdx2)
     {
-      if constexpr (debug)
-      {
+      #if debug
         if (!foundIdx1)
           elemNotExistErr(string(__func__), id, value1);
         else
           elemNotExistErr(string(__func__), id, value2);
-      }
+      #endif
+
       return false;
     }
     else if (index1 == index2)
     {
       // poset_del: poset 0, relation ("E", "G") cannot be deleted
-      if constexpr (debug)
+      #if debug
         isRelationDeletedErr(false, string(__func__), id, value1, value2);
+      #endif
       
       return false;
     }
@@ -878,20 +911,23 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
           else
             poset_del_IsOnTheRight(relationArr, index1, index2);
 
-          if constexpr (debug)
+          #if debug
             isRelationDeletedErr(true, string(__func__), id, value1, value2);
+          #endif
 
           return true;
         }
       }
-      if constexpr (debug)
+      #if debug
         isRelationDeletedErr(false, string(__func__), id, value1, value2);
+      #endif
     }
   }
   else
   {
-    if constexpr (debug)
+    #if debug
       posetNotExistErr(string(__func__), id);
+    #endif
   }
     
 
@@ -900,15 +936,17 @@ bool poset_del(unsigned long id, char const *value1, char const *value2)
 
 bool poset_test(unsigned long id, char const *value1, char const *value2)
 {
-  if constexpr (debug)
+  #if debug
     threeArgFuncNameErr(string(__func__), id, value1, value2);
+  #endif
 
   auto &allPosets = getAllPosets();
   
   if (value1 == nullptr || value2 == nullptr)
   {
-    if constexpr (debug)
+    #if debug
       twoValueNullErr(string(__func__), value1, value2);
+    #endif
     
     return false;
   }
@@ -927,13 +965,13 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
     // there is no element (value1 or value2) in a set
     if (!foundIdx1 || !foundIdx2)
     {
-      if constexpr (debug)
-      {
+      #if debug
         if (!foundIdx1)
           elemNotExistErr(string(__func__), id, value1);
         else
           elemNotExistErr(string(__func__), id, value2);
-      }
+      #endif
+
       return false;
     }
     else
@@ -944,19 +982,23 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
       if (p->at(index1)[index2] == RELATION || 
         p->at(index1)[index2] == RELATION_TRANSITIVITY)
       {
-        if constexpr (debug)
+        #if debug
           relationExistsErr(true, string(__func__), id, value1, value2);
+        #endif
         
         return true;
       }
-      if constexpr (debug)
+
+      #if debug
         relationExistsErr(false, string(__func__), id, value1, value2);
+      #endif
     }
   }
   else
   {
-    if constexpr (debug)
+    #if debug
       posetNotExistErr(string(__func__), id);
+    #endif
   }
     
 
@@ -965,8 +1007,9 @@ bool poset_test(unsigned long id, char const *value1, char const *value2)
 
 void poset_clear(unsigned long id)
 {
-  if constexpr (debug)
+  #if debug
     oneArgFuncNameErr(string(__func__), id);
+  #endif
 
   auto &allPosets = getAllPosets();
   
@@ -979,13 +1022,15 @@ void poset_clear(unsigned long id)
     v->clear();
     p->clear();
 
-    if constexpr (debug)
+    #if debug
       stateOfPosetErr(string(__func__), id);
+    #endif
   }
   else
   {
-    if constexpr (debug)
+    #if debug
       posetNotExistErr(string(__func__), id);
+    #endif
   }
     
 }
