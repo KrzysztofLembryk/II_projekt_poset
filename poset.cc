@@ -473,7 +473,7 @@ namespace cxx {
   unsigned long poset_new(void)
   {
     static posetID_t nextID = 0;
-    static posetID_t id = 0;
+    posetID_t id = 0;
     if constexpr (debug)
       oneArgFuncNameErr(string(__func__), id);
 
