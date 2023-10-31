@@ -1,24 +1,19 @@
-#include <iostream>
+#include <cassert>
+#include <queue>
 #include <string>
 #include <unordered_map>
-#include <list>
-#include <set>
 #include <vector>
-#include <cassert>
 
 #include "poset.h"
 
 #define assertm(exp, msg) assert(((void)msg, exp))
 
-
-
 using std::cerr;
 using std::cin;
 using std::cout;
 using std::exit;
-using std::list;
 using std::pair;
-using std::set;
+using std::queue;
 using std::string;
 using std::to_string;
 using std::unordered_map;
@@ -26,15 +21,12 @@ using std::vector;
 
 using posetID_t = unsigned long;
 using idx_t = size_t;
+using availableIDs = queue<posetID_t>;
 using poset_elem = string;
-// using inputVal_t = char const;
 using vectorOfStrings = vector<poset_elem>;
 using posetRelationsArray = vector<vector<int>>;
-using identificator = unsigned long;
 using poset_t = pair<vectorOfStrings *, posetRelationsArray *>;
-using allPosetsMap = unordered_map<identificator, poset_t *>;
-
-// unordered_map<identificator, poset_t *> allPosets;
+using allPosetsMap = unordered_map<posetID_t, poset_t *>;
 
 namespace
 {
@@ -45,53 +37,14 @@ namespace
   const int NOT_FOUND = -1;
 
   allPosetsMap &getAllPosets()
-{
-  static allPosetsMap allPosets; //= init_posets();
-  return allPosets;
-}
-
-  void printVectorOfStrings(vectorOfStrings const &vec)
   {
-    size_t n = vec.size();
-
-    cout << "vecOfStrings: ";
-    for (size_t i = 0; i < n; i++)
-      cout << vec[i] << ", ";
-    cout << "\n\n";
+    static allPosetsMap allPosets;
+    return allPosets;
   }
 
-  void printArrOfRelations(posetRelationsArray const &arr)
-  {
-    size_t rows = arr.size();
-    size_t columns = arr[0].size();
-
-    cout << "Array of relations: \n";
-    cout << "   ";
-
-    for (size_t i = 0; i < columns; i++)
-      cout << i << "  ";
-
-    cout << "\n";
-
-    for (size_t i = 0; i < rows; i++)
-    {
-      cout << i << " ";
-
-      for (size_t j = 0; j < columns; j++)
-      {
-        if (arr[i][j] != -1)
-          cout << " ";
-        cout << arr[i][j] << " ";
-      }
-
-      cout << "\n";
-    }
-  }
-
-  void printPoset(poset_t const *p)
-  {
-    printVectorOfStrings(*(p->first));
-    printArrOfRelations(*(p->second));
+  availableIDs &getAvailableIDs() {
+    static availableIDs availableIDs;
+    return availableIDs;
   }
 
   // Helper function for poset_remove.
@@ -509,483 +462,515 @@ void stateOfPosetErr(string fName, posetID_t id)
 }
 
 namespace cxx {
-  
-// tylko zeby bylo teraz, przypisuje id zawsze o 1 wiekszy od najwyzszego id.
-unsigned long poset_new(void)
-{
-  auto &allPosets = getAllPosets();
-  unsigned long id = 0;
-  if constexpr (debug)
-    oneArgFuncNameErr(string(__func__), id);
 
-  if (!allPosets.empty())
+  /*
+  * Creates a new poset and assigns it an id from the queue
+  * of available (deleted) ids. If there are no such ids,
+  * it assigns an id that is 1 greater than the previous one that
+  * was not taken from queue.
+  * Returns this id.
+  */
+  unsigned long poset_new(void)
   {
-    size_t sizeAllPosets = allPosets.size();
+    static posetID_t nextID = 0;
+    static posetID_t id = 0;
+    if constexpr (debug)
+      oneArgFuncNameErr(string(__func__), id);
 
-    if (++sizeAllPosets == 0)
+    auto &allPosets = getAllPosets();
+    auto &availableIDs = getAvailableIDs();
+    if (!availableIDs.empty()) 
     {
-      cerr << "poset_new: no free IDs to use\n";
-      exit(-1);
+      id = availableIDs.front();
+      availableIDs.pop();
+    }
+    else 
+    {
+      id = nextID++;
     }
 
-    for (const auto &entry : allPosets)
-    {
-      if (entry.first >= id)
-      {
-        id = entry.first;
-        id++;
-      }
-    }
-  }
-
-  poset_t *newPoset = new poset_t;
-  vectorOfStrings *newVecOfPosetElem = new vectorOfStrings;
-  posetRelationsArray *newRelationsArr = new posetRelationsArray;
-  newPoset->first = newVecOfPosetElem;
-  newPoset->second = newRelationsArr;
-
-  allPosets.insert({id, newPoset});
-  if constexpr (debug)
-    stateOfPosetErr(string(__func__), id);
-
-  return id;
-}
-
-void poset_delete(unsigned long id)
-{
-  if constexpr (debug)
-    oneArgFuncNameErr(string(__func__), id);
-
-  auto &allPosets = getAllPosets();
-
-  auto it = allPosets.find(id);
-
-  if (it != allPosets.end())
-  {
-    delete it->second->first;
-    delete it->second->second;
-    allPosets.erase(it);
-
+    poset_t *newPoset = new poset_t;
+    vectorOfStrings *newVecOfPosetElem = new vectorOfStrings;
+    posetRelationsArray *newRelationsArr = new posetRelationsArray;
+    newPoset->first = newVecOfPosetElem;
+    newPoset->second = newRelationsArr;
+    allPosets.insert({id, newPoset});
+    
     if constexpr (debug)
       stateOfPosetErr(string(__func__), id);
+
+    return id;
   }
-  else
+
+  /*
+  * If a poset with the identifier id exists, it removes it
+  * and adds its id to the queue of deleted itd.
+  * Otherwise, it does nothing.
+  */
+  void poset_delete(unsigned long id)
   {
     if constexpr (debug)
-      posetNotExistErr(string(__func__), id);
-  }
-    
-}
+      oneArgFuncNameErr(string(__func__), id);
 
-size_t poset_size(unsigned long id)
-{
-  if constexpr (debug)
-    oneArgFuncNameErr(string(__func__), id);
+    auto &allPosets = getAllPosets();
 
-  auto &allPosets = getAllPosets();
-
-  auto it = allPosets.find(id);
-  size_t sizeOfPoset = 0;
-
-  if (it != allPosets.end())
-  {
-    vectorOfStrings *v = it->second->first;
-    sizeOfPoset = v->size();
-    if constexpr (debug)
-      containsErr(string(__func__), id, sizeOfPoset);
-  }
-  else
-  {
-    if constexpr (debug)
-      posetNotExistErr(string(__func__), id);
-  }
-    
-
-  return sizeOfPoset;
-}
-
-bool poset_insert(unsigned long id, char const *value)
-{
-  if constexpr (debug)
-    twoArgFuncNameErr(string(__func__), id, value);
-
-  auto &allPosets = getAllPosets();
-
-  if (value == nullptr)
-  {
-    if constexpr (debug)
-      oneValueNullErr(string(__func__), value); 
-    
-    return false;
-  }
-
-  auto it = allPosets.find(id);
-
-  if (it != allPosets.end())
-  {
-    vectorOfStrings *v = it->second->first;
-
-    for (const poset_elem &str : *v)
+    auto it = allPosets.find(id);
+    if (it != allPosets.end())
     {
-      if (str == value)
-      {
-        if constexpr (debug)
-          elemExistErr(string(__func__), id, value);
-        return false;
-      }
-    }
-
-    poset_elem elemToAdd(value);
-    v->push_back(elemToAdd);
-
-    posetRelationsArray *p = it->second->second;
-
-    p->push_back(vector<int>(p->size(), NO_RELATION));
-
-    // dodanie nowej kolumny
-    for (vector<int> &row : *p)
-      row.push_back(NO_RELATION);
-
-    // element is in relation with itself
-    p->at(p->size() - 1)[p->size() - 1] = RELATION;
-
-    if constexpr (debug)
-      insertedErr(string(__func__), id, value);
-
-    return true;
-  }
-  else
-  {
-    if constexpr (debug)
-      posetNotExistErr(string(__func__), id);
-  }
-    
-
-  return false;
-}
-
-bool poset_remove(unsigned long id, char const *value)
-{
-  if constexpr (debug)
-    twoArgFuncNameErr(string(__func__), id, value);
-
-  auto &allPosets = getAllPosets();
-
-  if (value == nullptr)
-  {
-    if constexpr (debug)
-      oneValueNullErr(string(__func__), value);
-    return false;
-  }
-
-  bool elemExists = false;
-  size_t idxOfElem;
-  auto iter = allPosets.find(id);
-
-  if (iter != allPosets.end())
-  {
-    vectorOfStrings *v = iter->second->first;
-
-    checkIfElemExistInVecOfStr(v, value, idxOfElem, elemExists);
-
-    if (elemExists)
-    {
-      (*v).erase((*v).begin() + idxOfElem);
-
-      posetRelationsArray *relationArr = iter->second->second;
-      size_t nbrOfRows = relationArr->size();
-      vector<int> *rowVec;
-
-      for (size_t i = 0; i < nbrOfRows; i++)
-      {
-        if (i != idxOfElem)
-        {
-          deleteRelationsTransitivity(relationArr, i, idxOfElem, nbrOfRows);
-          deleteRelationsLarger(relationArr, i, idxOfElem, nbrOfRows);
-
-          rowVec = &(relationArr->at(i));
-          rowVec->erase(rowVec->begin() + idxOfElem);
-        }
-      }
-
-      relationArr->erase(relationArr->begin() + idxOfElem);
+      auto &availableIDs = getAvailableIDs();
+      availableIDs.push(id);
+      delete it->second->first;
+      delete it->second->second;
+      delete it->second;
+      allPosets.erase(it);
 
       if constexpr (debug)
-        elemRemovedErr(string(__func__), id, value);
+        stateOfPosetErr(string(__func__), id);
+    }
+    else
+    {
+      if constexpr (debug)
+        posetNotExistErr(string(__func__), id);
+    }
+      
+  }
+
+  /*
+  * If a poset with the indetifier id exists, the result
+  * is the number of its elements.
+  * Otherwise, it is 0.
+  */
+  size_t poset_size(unsigned long id)
+  {
+    if constexpr (debug)
+      oneArgFuncNameErr(string(__func__), id);
+
+    auto &allPosets = getAllPosets();
+    size_t sizeOfPoset = 0;
+
+    auto it = allPosets.find(id);
+    if (it != allPosets.end())
+    {
+      vectorOfStrings *v = it->second->first;
+      sizeOfPoset = v->size();
+      if constexpr (debug)
+        containsErr(string(__func__), id, sizeOfPoset);
+    }
+    else
+    {
+      if constexpr (debug)
+        posetNotExistErr(string(__func__), id);
+    }
+      
+    return sizeOfPoset;
+  }
+
+  /*
+  * If a poset with the indetifier id exists and the element value
+  * is not part of that set, it adds the element to the set,
+  * otherwise it does nothing. The new element is not related to any other
+  * element. The result is true when the element has been added, 
+  * and false otherwise.
+  */
+  bool poset_insert(unsigned long id, char const *value)
+  {
+    if constexpr (debug)
+      twoArgFuncNameErr(string(__func__), id, value);
+
+    if (value == nullptr)
+    {
+      if constexpr (debug)
+        oneValueNullErr(string(__func__), value); 
+      
+      return false;
+    }
+
+    auto &allPosets = getAllPosets();
+
+    auto it = allPosets.find(id);
+    if (it != allPosets.end())
+    {
+      vectorOfStrings *v = it->second->first;
+
+      for (const poset_elem &str : *v)
+      {
+        if (str == value)
+        {
+          if constexpr (debug)
+            elemExistErr(string(__func__), id, value);
+          return false;
+        }
+      }
+      // Adding an element to the string vector.
+      poset_elem elemToAdd(value);
+      v->push_back(elemToAdd);
+
+      posetRelationsArray *p = it->second->second;
+      // Adding new row.
+      p->push_back(vector<int>(p->size(), NO_RELATION));
+      // Adding new column.
+      for (vector<int> &row : *p)
+        row.push_back(NO_RELATION);
+      // An element is in relation with itself.
+      p->at(p->size() - 1)[p->size() - 1] = RELATION;
+
+      if constexpr (debug)
+        insertedErr(string(__func__), id, value);
 
       return true;
     }
     else
     {
       if constexpr (debug)
-        elemNotExistErr(string(__func__), id, value);
+        posetNotExistErr(string(__func__), id);
     }
-      
-  }
-  else
-  {
-    if constexpr (debug)
-      posetNotExistErr(string(__func__), id);
-  }
-    
-  
-  return false;
-}
 
-bool poset_add(unsigned long id, char const *value1, char const *value2)
-{
-  if constexpr (debug)
-    threeArgFuncNameErr(string(__func__), id, value1, value2);
-
-  auto &allPosets = getAllPosets();
-  
-  if (value1 == nullptr || value2 == nullptr)
-  {
-    if constexpr (debug)
-      twoValueNullErr(string(__func__), value1, value2);
     return false;
   }
 
-  auto it = allPosets.find(id);
-
-  if (it != allPosets.end())
+  /*
+  * If a poset with the identifier id exists and the element value 
+  * belongs to that set, it removes the element from the set and also 
+  * removes all relations of that element; otherwise, it does nothing.
+  * The result is true when the element has been removed, and false otherwise.
+  */
+  bool poset_remove(unsigned long id, char const *value)
   {
-    bool foundIndex1, foundIndex2;
-    size_t index1, index2;
-    vectorOfStrings *v = it->second->first;
+    if constexpr (debug)
+      twoArgFuncNameErr(string(__func__), id, value);
 
-    checkIfElemExistInVecOfStr(v, value1, index1, foundIndex1);
-    checkIfElemExistInVecOfStr(v, value2, index2, foundIndex2);
-
-    // there is no element (value1 or value2) in a set
-    if (!foundIndex1 || !foundIndex2)
+    if (value == nullptr)
     {
       if constexpr (debug)
-      {
-        char const *val;
+        oneValueNullErr(string(__func__), value);
+      return false;
+    }
+    bool elemExists = false;
+    size_t idxOfElem;
+    auto &allPosets = getAllPosets();
 
-        if (!foundIndex1)
-          val = value1;
-        else
-          val = value2;
+    auto iter = allPosets.find(id);
+    if (iter != allPosets.end())
+    {
+      vectorOfStrings *v = iter->second->first;
+
+      checkIfElemExistInVecOfStr(v, value, idxOfElem, elemExists);
+
+      if (elemExists)
+      {
+        (*v).erase((*v).begin() + idxOfElem);
+
+        posetRelationsArray *relationArr = iter->second->second;
+        size_t nbrOfRows = relationArr->size();
+        vector<int> *rowVec;
+
+        for (size_t i = 0; i < nbrOfRows; i++)
+        {
+          if (i != idxOfElem)
+          {
+            deleteRelationsTransitivity(relationArr, i, idxOfElem, nbrOfRows);
+            deleteRelationsLarger(relationArr, i, idxOfElem, nbrOfRows);
+
+            rowVec = &(relationArr->at(i));
+            rowVec->erase(rowVec->begin() + idxOfElem);
+          }
+        }
+
+        relationArr->erase(relationArr->begin() + idxOfElem);
 
         if constexpr (debug)
-          elemNotExistErr(string(__func__), id, val);
+          elemRemovedErr(string(__func__), id, value);
+
+        return true;
       }
-      return false;
+      else
+      {
+        if constexpr (debug)
+          elemNotExistErr(string(__func__), id, value);
+      }
+        
     }
     else
     {
-      posetRelationsArray *relationArr = it->second->second;
+      if constexpr (debug)
+        posetNotExistErr(string(__func__), id);
+    }
 
-      // if there is an edge between value1 and value2
-      if (relationArr->at(index1)[index2] == RELATION ||
-          relationArr->at(index2)[index1] == RELATION)
+    return false;
+  }
+
+  /*
+  *If a poset with the identifier id exists and the elements value1 
+  * and value2 belong to that set and are not related, it extends 
+  * the relation so that the element value1 precedes the element value2;
+  * otherwise, it does nothing. 
+  * The result is true when the relation has been extended,
+  * and false otherwise.
+  */
+  bool poset_add(unsigned long id, char const *value1, char const *value2)
+  {
+    if constexpr (debug)
+      threeArgFuncNameErr(string(__func__), id, value1, value2);
+
+    if (value1 == nullptr || value2 == nullptr)
+    {
+      if constexpr (debug)
+        twoValueNullErr(string(__func__), value1, value2);
+      return false;
+    }
+
+    auto &allPosets = getAllPosets();
+
+    auto it = allPosets.find(id);
+    if (it != allPosets.end())
+    {
+      bool foundIndex1, foundIndex2;
+      size_t index1, index2;
+      vectorOfStrings *v = it->second->first;
+
+      checkIfElemExistInVecOfStr(v, value1, index1, foundIndex1);
+      checkIfElemExistInVecOfStr(v, value2, index2, foundIndex2);
+
+      if (!foundIndex1 || !foundIndex2)
       {
         if constexpr (debug)
-          isRelationAddedErr(NO_RELATION, string(__func__), id, value1, value2);
+        {
+          char const *val;
+
+          if (!foundIndex1)
+            val = value1;
+          else
+            val = value2;
+
+          if constexpr (debug)
+            elemNotExistErr(string(__func__), id, val);
+        }
+        return false;
+      }
+      else
+      {
+        posetRelationsArray *relationArr = it->second->second;
+
+        // If there is an edge between value1 and value2,
+        // meaning the elements are in relation, then do nothing.
+        if (relationArr->at(index1)[index2] == RELATION ||
+            relationArr->at(index2)[index1] == RELATION)
+        {
+          if constexpr (debug)
+            isRelationAddedErr(NO_RELATION, string(__func__), id, value1, value2);
+          
+          return false;
+        }
+        else
+        {
+          // Adding relation (edge between value1 and value2).
+          relationArr->at(index1)[index2] = RELATION;
+          relationArr->at(index2)[index1] = RELATION_IM_LARGER;
+
+          // Now adds edges that will result from transitivity.
+          addTransitivityRelations(relationArr, index1, index2);
+
+          if constexpr (debug)
+            isRelationAddedErr(RELATION, string(__func__), id, value1, value2);
+
+          return true;
+        }
+      }
+    }
+    else
+    {
+      if constexpr (debug)
+        posetNotExistErr(string(__func__), id);
+    }
+      
+    return false;
+  }
+
+  /*
+  * If a poset with the identifier id exists, the elements value1 and value2
+  * belong to that set, element value1 precedes element value2, and removing 
+  * the relation between elements value1 and value2 will not violate 
+  * the conditions of being a partial order, then it removes the relation 
+  * between these elements; otherwise, it does nothing.
+  * The result is true when the relation has been changed, and false otherwise.
+  */
+  bool poset_del(unsigned long id, char const *value1, char const *value2)
+  {
+    if constexpr (debug)
+      threeArgFuncNameErr(string(__func__), id, value1, value2);
+
+    if (value1 == nullptr || value2 == nullptr)
+    {
+      if constexpr (debug)
+        twoValueNullErr(string(__func__), value1, value2);
+      return false;
+    }
+    
+    auto &allPosets = getAllPosets();
+
+    auto iter = allPosets.find(id);
+    if (iter != allPosets.end())
+    {
+      bool foundIdx1, foundIdx2;
+      idx_t index1, index2;
+      vectorOfStrings *v = iter->second->first;
+
+      checkIfElemExistInVecOfStr(v, value1, index1, foundIdx1);
+      checkIfElemExistInVecOfStr(v, value2, index2, foundIdx2);
+
+      if (!foundIdx1 || !foundIdx2)
+      {
+        if constexpr (debug)
+        {
+          if (!foundIdx1)
+            elemNotExistErr(string(__func__), id, value1);
+          else
+            elemNotExistErr(string(__func__), id, value2);
+        }
+        return false;
+      }
+      else if (index1 == index2)
+      {
+        // poset_del: poset 0, relation ("E", "G") cannot be deleted
+        if constexpr (debug)
+          isRelationDeletedErr(false, string(__func__), id, value1, value2);
         
         return false;
       }
       else
       {
-        // edge from index1(value1) to index2 (value2)
-        relationArr->at(index1)[index2] = RELATION;
-        relationArr->at(index2)[index1] = RELATION_IM_LARGER;
+        posetRelationsArray *relationArr = iter->second->second;
 
-        // now add edges that will result from transitivity
-        addTransitivityRelations(relationArr, index1, index2);
+        if (relationArr->at(index1)[index2] == RELATION)
+        {
+          bool isOnTheLeft, isOnTheRight;
 
+          if (relationGoodToDelete(relationArr, index1, index2,
+                                  isOnTheLeft, isOnTheRight))
+          {
+            relationArr->at(index1)[index2] = NO_RELATION;
+            relationArr->at(index2)[index1] = NO_RELATION;
+
+            if (isOnTheLeft)
+              poset_del_IsOnTheLeft(relationArr, index1, index2);
+            else
+              poset_del_IsOnTheRight(relationArr, index1, index2);
+
+            if constexpr (debug)
+              isRelationDeletedErr(true, string(__func__), id, value1, value2);
+
+            return true;
+          }
+        }
         if constexpr (debug)
-          isRelationAddedErr(RELATION, string(__func__), id, value1, value2);
-
-        return true;
+          isRelationDeletedErr(false, string(__func__), id, value1, value2);
       }
     }
-  }
-  else
-  {
-    if constexpr (debug)
-      posetNotExistErr(string(__func__), id);
-  }
-    
+    else
+    {
+      if constexpr (debug)
+        posetNotExistErr(string(__func__), id);
+    }
+      
 
-  return false;
-}
-
-bool poset_del(unsigned long id, char const *value1, char const *value2)
-{
-  if constexpr (debug)
-    threeArgFuncNameErr(string(__func__), id, value1, value2);
-
-  auto &allPosets = getAllPosets();
-
-  if (value1 == nullptr || value2 == nullptr)
-  {
-    if constexpr (debug)
-      twoValueNullErr(string(__func__), value1, value2);
     return false;
   }
-  
-  auto iter = allPosets.find(id);
 
-  if (iter != allPosets.end())
+  /*
+  * If a poset with the identifier id exists, the elements value1 and value2
+  * belong to that set, and element value1 precedes element value2,
+  * then the result is true; otherwise, it is false."
+  */
+  bool poset_test(unsigned long id, char const *value1, char const *value2)
   {
-    bool foundIdx1, foundIdx2;
-    idx_t index1, index2;
-    vectorOfStrings *v = iter->second->first;
-
-    checkIfElemExistInVecOfStr(v, value1, index1, foundIdx1);
-    checkIfElemExistInVecOfStr(v, value2, index2, foundIdx2);
-
-    if (!foundIdx1 || !foundIdx2)
+    if constexpr (debug)
+      threeArgFuncNameErr(string(__func__), id, value1, value2);
+    
+    if (value1 == nullptr || value2 == nullptr)
     {
       if constexpr (debug)
-      {
-        if (!foundIdx1)
-          elemNotExistErr(string(__func__), id, value1);
-        else
-          elemNotExistErr(string(__func__), id, value2);
-      }
-      return false;
-    }
-    else if (index1 == index2)
-    {
-      // poset_del: poset 0, relation ("E", "G") cannot be deleted
-      if constexpr (debug)
-        isRelationDeletedErr(false, string(__func__), id, value1, value2);
+        twoValueNullErr(string(__func__), value1, value2);
       
       return false;
     }
-    else
-    {
-      posetRelationsArray *relationArr = iter->second->second;
-
-      if (relationArr->at(index1)[index2] == RELATION)
-      {
-        bool isOnTheLeft, isOnTheRight;
-
-        if (relationGoodToDelete(relationArr, index1, index2,
-                                 isOnTheLeft, isOnTheRight))
-        {
-          relationArr->at(index1)[index2] = NO_RELATION;
-          relationArr->at(index2)[index1] = NO_RELATION;
-
-          if (isOnTheLeft)
-            poset_del_IsOnTheLeft(relationArr, index1, index2);
-          else
-            poset_del_IsOnTheRight(relationArr, index1, index2);
-
-          if constexpr (debug)
-            isRelationDeletedErr(true, string(__func__), id, value1, value2);
-
-          return true;
-        }
-      }
-      if constexpr (debug)
-        isRelationDeletedErr(false, string(__func__), id, value1, value2);
-    }
-  }
-  else
-  {
-    if constexpr (debug)
-      posetNotExistErr(string(__func__), id);
-  }
     
+    auto &allPosets = getAllPosets();
 
-  return false;
-}
-
-bool poset_test(unsigned long id, char const *value1, char const *value2)
-{
-  if constexpr (debug)
-    threeArgFuncNameErr(string(__func__), id, value1, value2);
-
-  auto &allPosets = getAllPosets();
-  
-  if (value1 == nullptr || value2 == nullptr)
-  {
-    if constexpr (debug)
-      twoValueNullErr(string(__func__), value1, value2);
-    
-    return false;
-  }
-  
-  auto it = allPosets.find(id);
-
-  if (it != allPosets.end())
-  {
-    idx_t index1, index2;
-    bool foundIdx1, foundIdx2;
-    vectorOfStrings *v = it->second->first;
-
-    checkIfElemExistInVecOfStr(v, value1, index1, foundIdx1);
-    checkIfElemExistInVecOfStr(v, value2, index2, foundIdx2);
-
-    // there is no element (value1 or value2) in a set
-    if (!foundIdx1 || !foundIdx2)
+    auto it = allPosets.find(id);
+    if (it != allPosets.end())
     {
-      if constexpr (debug)
-      {
-        if (!foundIdx1)
-          elemNotExistErr(string(__func__), id, value1);
-        else
-          elemNotExistErr(string(__func__), id, value2);
-      }
-      return false;
-    }
-    else
-    {
-      posetRelationsArray *p = it->second->second;
+      idx_t index1, index2;
+      bool foundIdx1, foundIdx2;
+      vectorOfStrings *v = it->second->first;
 
-      // if there is an edge between value1 and value2 (relation or realation transitivity)
-      if (p->at(index1)[index2] == RELATION || 
-        p->at(index1)[index2] == RELATION_TRANSITIVITY)
+      checkIfElemExistInVecOfStr(v, value1, index1, foundIdx1);
+      checkIfElemExistInVecOfStr(v, value2, index2, foundIdx2);
+
+      if (!foundIdx1 || !foundIdx2)
       {
         if constexpr (debug)
-          relationExistsErr(true, string(__func__), id, value1, value2);
-        
-        return true;
+        {
+          if (!foundIdx1)
+            elemNotExistErr(string(__func__), id, value1);
+          else
+            elemNotExistErr(string(__func__), id, value2);
+        }
+        return false;
       }
+      else
+      {
+        posetRelationsArray *p = it->second->second;
+
+        // If elements (value1 and value2) are in relation,
+        // meaning if an element value1 precedes element value2.
+        if (p->at(index1)[index2] == RELATION || 
+          p->at(index1)[index2] == RELATION_TRANSITIVITY)
+        {
+          if constexpr (debug)
+            relationExistsErr(true, string(__func__), id, value1, value2);
+          
+          return true;
+        }
+        if constexpr (debug)
+          relationExistsErr(false, string(__func__), id, value1, value2);
+      }
+    }
+    else
+    {
       if constexpr (debug)
-        relationExistsErr(false, string(__func__), id, value1, value2);
+        posetNotExistErr(string(__func__), id);
+    }
+
+    return false;
+  }
+
+  /*
+  * If the poset with the identifier id exists, it removes
+  * all its elements and the relations between them.
+  * Otherwise, it does nothing.
+  */
+  void poset_clear(unsigned long id)
+  {
+    if constexpr (debug)
+      oneArgFuncNameErr(string(__func__), id);
+
+    auto &allPosets = getAllPosets();
+    
+    auto it = allPosets.find(id);
+    if (it != allPosets.end())
+    {
+      vectorOfStrings *v = it->second->first;
+      posetRelationsArray *p = it->second->second;
+      v->clear();
+      p->clear();
+
+      if constexpr (debug)
+        stateOfPosetErr(string(__func__), id);
+    }
+    else
+    {
+      if constexpr (debug)
+        posetNotExistErr(string(__func__), id);
     }
   }
-  else
-  {
-    if constexpr (debug)
-      posetNotExistErr(string(__func__), id);
-  }
-    
-
-  return false;
-}
-
-void poset_clear(unsigned long id)
-{
-  if constexpr (debug)
-    oneArgFuncNameErr(string(__func__), id);
-
-  auto &allPosets = getAllPosets();
-  
-  auto it = allPosets.find(id);
-
-  if (it != allPosets.end())
-  {
-    vectorOfStrings *v = it->second->first;
-    posetRelationsArray *p = it->second->second;
-    v->clear();
-    p->clear();
-
-    if constexpr (debug)
-      stateOfPosetErr(string(__func__), id);
-  }
-  else
-  {
-    if constexpr (debug)
-      posetNotExistErr(string(__func__), id);
-  }
-    
-}
-
 }
