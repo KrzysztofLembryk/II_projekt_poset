@@ -322,7 +322,7 @@ namespace
 bool constexpr debug = false;
 #else
 bool constexpr debug = true;
-
+#endif
 
 
 #define GET_VAR_NAME(x) #x
@@ -505,8 +505,6 @@ void stateOfPosetErr(string fName, posetID_t id)
     
   cerr << fName << getPosetIdErr(id) << lastExprErr(str);
 }
-
-#endif
 
 }
 
