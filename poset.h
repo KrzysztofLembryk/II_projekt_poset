@@ -5,6 +5,9 @@
 #include <stdbool.h>
 
 #ifdef __cplusplus
+
+#include <iostream>
+
 namespace cxx {
   extern "C" {
 #endif
