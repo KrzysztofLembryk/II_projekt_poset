@@ -34,7 +34,7 @@ namespace
   const int NO_RELATION = -1;
   const int RELATION_TRANSITIVITY = 2;
   const int RELATION_IM_LARGER = 3;
-  const int NOT_FOUND = -1;
+
 
   allPosetsMap &getAllPosets()
   {
@@ -52,8 +52,8 @@ namespace
   // meaning: elem1 < elem_to_remove
   // and if elem1 has transitivity relation with elem2,
   // where elem_to_remove < elem2, than relation between elem1 < elem2
-  // is removed.
-  void deleteRelationsTransitivity(posetRelationsArray *relArr,
+  // is changed to normal relation.
+  void changeRelationsTransitivity(posetRelationsArray *relArr,
                 idx_t currentElem, idx_t idxOfElemToDelete, size_t nbrOfRows)
   {
     if (relArr->at(currentElem)[idxOfElemToDelete] == RELATION ||
@@ -65,8 +65,8 @@ namespace
              relArr->at(idxOfElemToDelete)[j] == RELATION_TRANSITIVITY) &&
             relArr->at(currentElem)[j] == RELATION_TRANSITIVITY)
         {
-          relArr->at(currentElem)[j] = NO_RELATION;
-          relArr->at(j)[currentElem] = NO_RELATION;
+          relArr->at(currentElem)[j] = RELATION;
+          relArr->at(j)[currentElem] = RELATION_IM_LARGER;
         }
       }
     }
@@ -76,8 +76,8 @@ namespace
   // It finds elements that are larger than elem_to_delete
   // meaning elem_to_delete < elem1. Than it finds elements that
   // elem2 < elem_to_delete and if elem2 < elem1 transitivity
-  // it deletes relation.
-  void deleteRelationsLarger(posetRelationsArray *relArr,
+  // then it changes the relation.
+  void changeRelationsLarger(posetRelationsArray *relArr,
                 idx_t currentElem, idx_t idxOfElemToDelete, size_t nbrOfRows)
   {
     if (relArr->at(currentElem)[idxOfElemToDelete] == RELATION_IM_LARGER)
@@ -87,8 +87,8 @@ namespace
         if (relArr->at(idxOfElemToDelete)[j] == RELATION_IM_LARGER &&
             relArr->at(j)[currentElem] == RELATION_TRANSITIVITY)
         {
-          relArr->at(j)[currentElem] = NO_RELATION;
-          relArr->at(currentElem)[j] = NO_RELATION;
+          relArr->at(j)[currentElem] = RELATION;
+          relArr->at(currentElem)[j] = RELATION_IM_LARGER;
         }
       }
     }
@@ -205,11 +205,15 @@ namespace
     return false;
   }
 
-  // Helper function for poset_del.
-  // It deletes transitivity relations between elemIdx2 and elements that
-  // are < elemIdx1 and have transitivity relation with elemIdx2.
-  void poset_del_IsOnTheLeft(posetRelationsArray *relArr,
-                             idx_t idx1, idx_t idx2)
+ 
+  /*
+  * Helper function for poset_del.
+  * It changes transitivity relations to normal relation 
+  * between elemIdx2 and elements that are < elemIdx2 and have 
+  * transitivity relation with elemIdx2.
+  */ 
+  void poset_changeRelation_OnTheLeft(posetRelationsArray *relArr,
+                                      idx_t idx1, idx_t idx2)
   {
     size_t nbrOfRows = relArr->at(idx2).size();
 
@@ -220,18 +224,21 @@ namespace
       {
         if (relArr->at(i)[idx2] == RELATION_TRANSITIVITY)
         {
-          relArr->at(i)[idx2] = NO_RELATION;
-          relArr->at(idx2)[i] = NO_RELATION;
+          relArr->at(i)[idx2] = RELATION;
+          relArr->at(idx2)[i] = RELATION_IM_LARGER;
         }
       }
     }
   }
 
-  // Helper function for poset_del.
-  // It deletes im_larger relations between elemIdx1 and elements that
-  // are > elemIdx2 and have Im_larger relation with elemIdx1.
-  void poset_del_IsOnTheRight(posetRelationsArray *relArr,
-                              idx_t idx1, idx_t idx2)
+  /*
+  * Helper function for poset_del.
+  * It changes transitivity relations to normal relation 
+  * between elemIdx1 and elements that are > elemIdx2 and have 
+  * Im_larger relation with elemIdx1.
+  */ 
+  void poset_changeRelation_OnTheRight(posetRelationsArray *relArr,
+                                        idx_t idx1, idx_t idx2)
   {
     size_t nbrOfRows = relArr->at(idx2).size();
 
@@ -241,8 +248,8 @@ namespace
       {
         if (relArr->at(idx1)[i] == RELATION_TRANSITIVITY)
         {
-          relArr->at(i)[idx1] = NO_RELATION;
-          relArr->at(idx1)[i] = NO_RELATION;
+          relArr->at(i)[idx1] = RELATION;
+          relArr->at(idx1)[i] = RELATION_IM_LARGER;
         }
       }
     }
@@ -668,8 +675,8 @@ namespace cxx {
         {
           if (i != idxOfElem)
           {
-            deleteRelationsTransitivity(relationArr, i, idxOfElem, nbrOfRows);
-            deleteRelationsLarger(relationArr, i, idxOfElem, nbrOfRows);
+            changeRelationsTransitivity(relationArr, i, idxOfElem, nbrOfRows);
+            changeRelationsLarger(relationArr, i, idxOfElem, nbrOfRows);
 
             rowVec = &(relationArr->at(i));
             rowVec->erase(rowVec->begin() + idxOfElem);
@@ -700,7 +707,7 @@ namespace cxx {
   }
 
   /*
-  *If a poset with the identifier id exists and the elements value1 
+  * If a poset with the identifier id exists and the elements value1 
   * and value2 belong to that set and are not related, it extends 
   * the relation so that the element value1 precedes the element value2;
   * otherwise, it does nothing. 
@@ -852,9 +859,9 @@ namespace cxx {
             relationArr->at(index2)[index1] = NO_RELATION;
 
             if (isOnTheLeft)
-              poset_del_IsOnTheLeft(relationArr, index1, index2);
+              poset_changeRelation_OnTheLeft(relationArr, index1, index2);
             else
-              poset_del_IsOnTheRight(relationArr, index1, index2);
+              poset_changeRelation_OnTheRight(relationArr, index1, index2);
 
             if constexpr (debug)
               isRelationDeletedErr(true, string(__func__), id, value1, value2);
