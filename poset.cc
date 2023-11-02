@@ -244,12 +244,13 @@ namespace
 
     for (size_t i = 0; i < nbrOfRows; i++)
     {
-      if (relArr->at(i)[idx2] == RELATION_IM_LARGER)
+      if (relArr->at(idx2)[i] == RELATION ||
+          relArr->at(idx2)[i] == RELATION_TRANSITIVITY)
       {
         if (relArr->at(idx1)[i] == RELATION_TRANSITIVITY)
         {
-          relArr->at(i)[idx1] = RELATION;
-          relArr->at(idx1)[i] = RELATION_IM_LARGER;
+          relArr->at(idx1)[i] = RELATION;
+          relArr->at(i)[idx1] = RELATION_IM_LARGER;
         }
       }
     }
@@ -261,15 +262,17 @@ namespace
     size_t nbrOfRows = relationArr->size();
     for (idx_t i = 0; i < nbrOfRows; i++)
     {
-      if (relationArr->at(i)[index1] == RELATION &&
+      if ((relationArr->at(i)[index1] == RELATION ||
+          relationArr->at(i)[index1] == RELATION_TRANSITIVITY) &&
           relationArr->at(i)[index2] == NO_RELATION)
       {
         relationArr->at(i)[index2] = RELATION_TRANSITIVITY;
         relationArr->at(index2)[i] = RELATION_IM_LARGER;
       }
 
-      else if (relationArr->at(i)[index1] == NO_RELATION &&
-               relationArr->at(index2)[i] == RELATION)
+      else if (relationArr->at(index1)[i] == NO_RELATION &&
+              (relationArr->at(index2)[i] == RELATION ||
+               relationArr->at(index2)[i] == RELATION_TRANSITIVITY))
       {
         relationArr->at(index1)[i] = RELATION_TRANSITIVITY;
         relationArr->at(i)[index1] = RELATION_IM_LARGER;
@@ -761,7 +764,9 @@ namespace cxx {
         // If there is an edge between value1 and value2,
         // meaning the elements are in relation, then do nothing.
         if (relationArr->at(index1)[index2] == RELATION ||
-            relationArr->at(index2)[index1] == RELATION)
+            relationArr->at(index2)[index1] == RELATION ||
+            relationArr->at(index1)[index2] == RELATION_TRANSITIVITY ||
+            relationArr->at(index2)[index1] == RELATION_TRANSITIVITY)
         {
           if constexpr (debug)
             isRelationAddedErr(NO_RELATION, string(__func__), id, value1, value2);
