@@ -33,20 +33,28 @@ namespace
   const int RELATION = 1;
   const int NO_RELATION = -1;
   const int RELATION_TRANSITIVITY = 2;
-
-
+ 
+ /**
+  * Function that solves order fiasko problem.
+  * Creates static variable that stores all posets and
+  * returns reference to it.
+ */
   allPosetsMap &getAllPosets()
   {
     static allPosetsMap allPosets;
     return allPosets;
   }
 
+  /**
+   * Function that creates and returns static variable (queue) that
+   * stores available ids.
+  */
   availableIDs &getAvailableIDs() {
     static availableIDs availableIDs;
     return availableIDs;
   }
 
-  /*
+  /**
   * Helper function for poset_del.
   * Checks if there are elements between elements at idx1=A and idx2=B
   * and in relation with them. Meaning if exists C that A < C < B.
