@@ -83,7 +83,6 @@ namespace
   }
 
   /**
-   *
    * Helper function for poset_remove.
    * It finds elements that are in relation with  (smaller than) elem_to_remove,
    * meaning: elem1 < elem_to_remove
@@ -211,7 +210,7 @@ bool constexpr debug = true;
 */
 #define GET_VAR_NAME(x) #x
 
-//FUNCTIONS THAT HANDLE DEBBUGING MESSAGES
+// FUNCTIONS THAT HANDLE DEBBUGING MESSAGES
 
 /**
  * Function creates from char const* string that is between "",
@@ -227,6 +226,10 @@ bool constexpr debug = true;
     return str;
   }
 
+/**
+ * Function returns either string = "(s1, s2)" or
+ * if s2 is empty it returns only "(s1)".
+*/
   string getPairErr(string const &s1, string const &s2 = "")
   {
     if (!s2.empty())
@@ -235,6 +238,9 @@ bool constexpr debug = true;
       return "(" + s1 + ")";
   }
 
+/**
+ * Function returns string = ": poset id".
+*/
   string getPosetIdErr(posetID_t id)
   {
     string str(": poset ");
@@ -266,7 +272,7 @@ bool constexpr debug = true;
         getPairErr(getStrErr(value1), getStrErr(value2));
   }
 
-// functions that wrap the same debbugging cases
+// FUNCTIONS THAT WRAP THE SAME DEBUGGING MESSAGES CASES
 
 void posetNotExistErr(string fName, posetID_t id)
 {
@@ -299,7 +305,8 @@ void oneValueNullErr(string fName, char const *value)
   cerr << fName << invalidValErr(GET_VAR_NAME(value));
 }
 
-void threeArgFuncNameErr(string fName, posetID_t id, char const *value1, char const *value2)
+void threeArgFuncNameErr(string fName, posetID_t id, 
+  char const *value1, char const *value2)
 {
   cerr << fName << getPairErr(to_string(id),
     getStrErr(value1) + ", " + getStrErr(value2)) << "\n";
@@ -410,6 +417,7 @@ namespace cxx {
   {
     static posetID_t nextID = 0;
     posetID_t id = 0;
+
     if constexpr (debug)
       oneArgFuncNameErr(string(__func__), id);
 
@@ -438,10 +446,10 @@ namespace cxx {
     return id;
   }
 
-  /*
-  * If a poset with the identifier id exists, it removes it
-  * and adds its id to the queue of deleted itd.
-  * Otherwise, it does nothing.
+  /**
+   * If a poset with the identifier id exists, function removes memory that
+   * was allocated for the poset and adds its id to the queue of deleted itds.
+   * Otherwise, it does nothing.
   */
   void poset_delete(unsigned long id)
   {
