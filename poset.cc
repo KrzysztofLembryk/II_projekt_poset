@@ -593,7 +593,7 @@ namespace cxx {
     if (iter != allPosets.end())
     {
       vectorOfStrings *v = iter->second->first;
-
+      
       checkIfElemExistInVecOfStr(v, value, idxOfElem, elemExists);
 
       if (elemExists)
@@ -610,10 +610,13 @@ namespace cxx {
           {
             changeRelationsTransitivity(relationArr, i, idxOfElem, nbrOfRows);
             changeRelationsLarger(relationArr, i, idxOfElem, nbrOfRows);
+          }
+        }
 
+        for(size_t i = 0; i < nbrOfRows; i++)
+        {
             rowVec = &(relationArr->at(i));
             rowVec->erase(rowVec->begin() + idxOfElem);
-          }
         }
 
         relationArr->erase(relationArr->begin() + idxOfElem);
@@ -682,8 +685,7 @@ namespace cxx {
           else
             val = value2;
 
-          if constexpr (debug)
-            elemNotExistErr(string(__func__), id, val);
+          elemNotExistErr(string(__func__), id, val);
         }
         return false;
       }
