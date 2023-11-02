@@ -23,42 +23,35 @@ class generator {
 };
 
 unsigned poset_size(idt id, [[maybe_unused]] generator &rgen) {
-    cout << __func__ << "\n";
     return (unsigned)cxx::poset_size(id);
 }
 
 unsigned poset_insert(idt id, generator &rgen) {
     auto val = rgen.generate();
-    cout << __func__ << " " << val.c_str() << "\n";
     return (unsigned)cxx::poset_insert(id, val.c_str());
 }
 
 unsigned poset_remove(idt id, generator &rgen) {
     auto val = rgen.generate();
-    cout << __func__ << " " << val.c_str() << "\n";
     return (unsigned)cxx::poset_remove(id, val.c_str());
 }
 
 unsigned poset_add(idt id, generator &rgen) {
     auto val1 = rgen.generate(), val2 = rgen.generate();
-    cout << __func__ << " " << val1.c_str() << ", " << val2.c_str() << "\n";
     return (unsigned)cxx::poset_add(id, val1.c_str(), val2.c_str());
 }
 
 unsigned poset_del(idt id, generator &rgen) {
     auto val1 = rgen.generate(), val2 = rgen.generate();
-    cout << __func__ << " " << val1.c_str() << ", " << val2.c_str() << "\n";
     return (unsigned)cxx::poset_del(id, val1.c_str(), val2.c_str());
 }
 
 unsigned poset_test(idt id, generator &rgen) {
     auto val1 = rgen.generate(), val2 = rgen.generate();
-    cout << __func__ << " " << val1.c_str() << ", " << val2.c_str() << "\n";
     return (unsigned)cxx::poset_test(id, val1.c_str(), val2.c_str());
 }
 
 unsigned poset_clear(idt id, [[maybe_unused]] generator &rgen) {
-    cout << __func__ << "\n";
     cxx::poset_clear(id);
     return (unsigned)0;
 }
