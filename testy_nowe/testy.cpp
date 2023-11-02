@@ -57,7 +57,7 @@ unsigned poset_clear(idt id, [[maybe_unused]] generator &rgen) {
 }
 
 
-unsigned only_this_id = 0;
+unsigned only_this_id = 688205;
 // Jeżeli jeżeli ta wartość jest niezerowa, to program uruchomi tylko test o tym id.
 // W przeciwnym wypadku uruchomione zostaną wszystkie testy.
 unsigned global_id = 0;
