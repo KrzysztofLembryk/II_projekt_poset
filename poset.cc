@@ -47,44 +47,6 @@ namespace
     return availableIDs;
   }
 
-   void printVectorOfStrings(vectorOfStrings const &vec)
-  {
-    size_t n = vec.size();
-
-    cout << "vecOfStrings: ";
-    for (size_t i = 0; i < n; i++)
-      cout << vec[i] << ", ";
-    cout << "\n\n";
-  }
-
-  void printArrOfRelations(posetRelationsArray const &arr)
-  {
-    size_t rows = arr.size();
-    size_t columns = arr[0].size();
-
-    cout << "Array of relations: \n";
-    cout << "   ";
-
-    for (size_t i = 0; i < columns; i++)
-      cout << i << "  ";
-
-    cout << "\n";
-
-    for (size_t i = 0; i < rows; i++)
-    {
-      cout << i << " ";
-
-      for (size_t j = 0; j < columns; j++)
-      {
-        if (arr[i][j] != -1)
-          cout << " ";
-        cout << arr[i][j] << " ";
-      }
-
-      cout << "\n";
-    }
-  }
-
   bool somethingIsBetweenTwoElem(posetRelationsArray *relationArr,
                                  idx_t idx1, idx_t idx2)
   {
@@ -910,16 +872,5 @@ namespace cxx {
     }
   }
 
-
-
-  void poset_print(posetID_t id)
-  {
-    allPosetsMap allP = getAllPosets();
-
-    poset_t *p = allP[id];
-
-    printVectorOfStrings(*p->first);
-    printArrOfRelations(*p->second);
-  }
 
 }
