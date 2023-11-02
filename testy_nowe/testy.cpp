@@ -117,14 +117,14 @@ void run_with_prep(int q, int n, int seed, vector<function<unsigned(idt, generat
         s[0] += i;
         cxx::poset_insert(id, s.c_str());
     }
-    cout << "run_with_prep - after posert_insert loop\n"
+    cout << "run_with_prep - after posert_insert loop\n";
     cxx::poset_print(id);
 
     REP(i, q)
         cout << tester_functions[gen() % siz](id, rgen) << ",";
     cout << endl;
 
-    cout << "run_with_prep - after tester_func loop\n"
+    cout << "run_with_prep - after tester_func loop\n";
     cxx::poset_print(id);
     
     cxx::poset_delete(id);
