@@ -46,8 +46,8 @@ namespace
   }
 
   /**
-   * Function that creates and returns static variable (queue) that
-   * stores available ids.
+   * Function that creates static variable (queue) that
+   * stores available ids. It returns reference to it.
   */
   availableIDs &getAvailableIDs() {
     static availableIDs availableIDs;
@@ -58,7 +58,7 @@ namespace
   * Helper function for poset_del.
   * Checks if there are elements between elements at idx1=A and idx2=B
   * and in relation with them. Meaning if exists C that A < C < B.
-  * If such C exists function return true;
+  * If such C exists function returns true.
   */
   bool somethingIsBetweenTwoElem(posetRelationsArray *relationArr,
                                  idx_t idx1, idx_t idx2)
@@ -82,15 +82,16 @@ namespace
     return false;
   }
 
-  /*
-  * Helper function for poset_remove.
-  * It finds elements that are in relation with elem_to_remove,
-  * meaning: elem1 < elem_to_remove
-  * and if elem1 has transitivity relation with elem2,
-  * where elem_to_remove < elem2, than relation between elem1 < elem2
-  * is changed to normal relation.
+  /**
+   *
+   * Helper function for poset_remove.
+   * It finds elements that are in relation with  (smaller than) elem_to_remove,
+   * meaning: elem1 < elem_to_remove
+   * and if elem1 has transitivity relation with elem2,
+   * where elem_to_remove < elem2, than relation between elem1 < elem2
+   * is changed to normal relation.
   */
-  void changeRelationForElementSmaller(posetRelationsArray *relArr,
+  void changeRelationForSmallerElem(posetRelationsArray *relArr,
                 idx_t currentElem, idx_t idxOfElemToDelete, size_t nbrOfRows)
   {
     for (size_t j = 0; j < nbrOfRows; j++)
@@ -104,14 +105,14 @@ namespace
     }
   }
 
-  /*
-  * Helper function for poset_remove.
-  * It finds elements that are larger than elem_to_delete
-  * meaning elem_to_delete < elem1. Than it finds elements that
-  * elem2 < elem_to_delete and if elem2 < elem1 transitivity
-  * then it changes the relation.
+  /**
+   * Helper function for poset_remove.
+   * It finds elements that are larger than elem_to_delete
+   * meaning elem_to_delete < elem1. Than it finds elements that
+   * elem2 < elem_to_delete and if elem2 < elem1 transitivity
+   * then it changes the relation.
   */
-  void changeRelationForElementLarger(posetRelationsArray *relArr,
+  void changeRelationForLargerElem(posetRelationsArray *relArr,
                 idx_t currentElem, idx_t idxOfElemToDelete, size_t nbrOfRows)
   {
     for (size_t j = 0; j < nbrOfRows; j++)
@@ -125,8 +126,10 @@ namespace
     }
   }
 
-  /* Helper function.
-  * Checks if an element (value) is in a poset, also remembers its id.
+  /**
+   * Function checks if an element (value) is in a poset and sets
+   * exist variable to adequate value, also if element exist it
+   * remembers its position in vector in idx variable.
   */
   void checkIfElemExistInVecOfStr(vectorOfStrings *v, char const *value,
                                   idx_t &idx, bool &exist)
@@ -146,12 +149,23 @@ namespace
     }
   }
 
-
-
+  /**
+   * Function knows that relation between elemIdx1 and elemIdx2 exists,
+   * thus it adds transitivity relation between elems Xi < elemIdx1 and 
+   * elemIdx2 and elems Yi that: elemIdx2 < Xi. Function does this
+   * by using nested for loop, since it needs to check all elements in
+   * our poset. 
+   * If current elem_i is in relation or transitivity relation 
+   * with elemIdx1 and is in neither of available relations
+   * with elemIdx2 than elem_i has transitivity relation with elemIdx2.
+   * However, after we created this relation, we need to create 
+   * transitivity relations for elem_i and all elems Yj that elemIdx2 < Yj.
+  */
   void addTransitivityRelations(posetRelationsArray *relationArr,
                                 idx_t index1, idx_t index2)
   {
     size_t nbrOfRows = relationArr->size();
+
     for (idx_t i = 0; i < nbrOfRows; i++)
     {
       if (i != index1 && i != index2) {
@@ -170,7 +184,6 @@ namespace
             }
           }
         }
-
         else if (relationArr->at(index1)[i] == NO_RELATION &&
                 (relationArr->at(index2)[i] == RELATION ||
                 relationArr->at(index2)[i] == RELATION_TRANSITIVITY))
@@ -181,17 +194,29 @@ namespace
     }
   }
 
-
+/**
+ * Preprocessor directive that checks whether NDEBUG flag is set.
+ * It also creates bool constant which is later used in other functions
+ * for checking whether they should print debugging messages.
+*/
 #ifdef NDEBUG
 bool constexpr debug = false;
 #else
 bool constexpr debug = true;
 #endif
 
-
+/**
+ * Macro for getting variables' names, it is needed for functions that print
+ * debugging messages.
+*/
 #define GET_VAR_NAME(x) #x
 
-// functions for printing debbugging messages
+//FUNCTIONS THAT HANDLE DEBBUGING MESSAGES
+
+/**
+ * Function creates from char const* string that is between "",
+ * it also handles case when char const* is nullptr, and returns NULL. 
+*/
   string getStrErr(char const *val)
   {
     if (val == nullptr)
@@ -582,12 +607,12 @@ namespace cxx {
             if (relationArr->at(i)[idxOfElemToDelete] == RELATION ||
                 relationArr->at(i)[idxOfElemToDelete] == RELATION_TRANSITIVITY)
             {
-              changeRelationForElementSmaller(relationArr, i, idxOfElemToDelete, nbrOfRows);
+              changeRelationForSmallerElem(relationArr, i, idxOfElemToDelete, nbrOfRows);
             }
             else if (relationArr->at(idxOfElemToDelete)[i] == RELATION ||
                 relationArr->at(idxOfElemToDelete)[i] == RELATION_TRANSITIVITY)
             {
-              changeRelationForElementLarger(relationArr, i, idxOfElemToDelete, nbrOfRows);
+              changeRelationForLargerElem(relationArr, i, idxOfElemToDelete, nbrOfRows);
             }
           }
         }
