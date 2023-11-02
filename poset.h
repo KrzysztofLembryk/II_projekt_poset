@@ -30,6 +30,8 @@ bool poset_test(unsigned long id, char const *value1, char const *value2);
 
 void poset_clear(unsigned long id);
 
+void poset_print(unsigned long id);
+
 #ifdef __cplusplus
 }
 }
