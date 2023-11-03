@@ -34,6 +34,23 @@ namespace
   const int REL_TRANSITIVITY = 2;
 
   /**
+   * Preprocessor directive that checks whether NDEBUG flag is set.
+   * It also creates bool constant which is later used in other functions
+   * for checking whether they should print debugging messages.
+   */ 
+  #ifdef NDEBUG
+  bool constexpr debug = false;
+  #else
+  bool constexpr debug = true;
+  #endif
+  
+  /**
+   * Macro for getting variables' names, it is needed for functions that print 
+   * debugging messages. 
+   */
+  #define GET_VAR_NAME(x) #x
+
+  /**
    * Function that solves order fiasko problem.
    * Creates static variable that stores all posets and
    * returns reference to it.
@@ -149,16 +166,15 @@ namespace
   }
 
   /**
-   * Function knows that relation between elemIdx1 and elemIdx2 exists,
+   * Function knows that elemIdx1 < elemIdx2,
    * thus it adds transitivity relation between elems Xi < elemIdx1 and
-   * elemIdx2 and elems Yi that: elemIdx2 < Xi. Function does this
-   * by using nested for loop, since it needs to check all elements in
-   * our poset.
-   * If current elem_i is in relation or transitivity relation
+   * elems Yi >= elemIdx2. Function does this by using nested for loop,
+   * since it needs to check all elements in our poset.
+   * If current Xi is in relation or transitivity relation
    * with elemIdx1 and is in neither of available relations
-   * with elemIdx2 than elem_i has transitivity relation with elemIdx2.
+   * with elemIdx2 than Xi has transitivity relation with elemIdx2.
    * However, after we created this relation, we need to create
-   * transitivity relations for elem_i and all elems Yj that elemIdx2 < Yj.
+   * transitivity relations for Xi and all elems Yj that elemIdx2 <= Yj.
    */
   void addTransitivityRelations(posetRelationsArray *relationArr,
                                 idx_t index1, idx_t index2)
@@ -169,11 +185,14 @@ namespace
     {
       if (i != index1 && i != index2)
       {
+        // We check if Xi < elemIdx1 and if no rel between Xi and elemIdx2.
         if ((relationArr->at(i)[index1] == RELATION ||
              relationArr->at(i)[index1] == REL_TRANSITIVITY) &&
             relationArr->at(i)[index2] == NO_RELATION)
         {
           relationArr->at(i)[index2] = REL_TRANSITIVITY;
+
+          // Now we add rel transitivity between Xi and Yj > elemIdx2. 
           for (idx_t j = 0; j < nbrOfRows; j++)
           {
             if ((relationArr->at(index2)[j] == RELATION ||
@@ -184,6 +203,8 @@ namespace
             }
           }
         }
+        // Here we check if elemIdx1 is not in rel with Xi and whether
+        // elemIdx2 < Xi, if it is we add rel between elemIdx1 and Xi.
         else if (relationArr->at(index1)[i] == NO_RELATION &&
                  (relationArr->at(index2)[i] == RELATION ||
                   relationArr->at(index2)[i] == REL_TRANSITIVITY))
@@ -194,22 +215,10 @@ namespace
     }
   }
 
-/**
- * Preprocessor directive that checks whether NDEBUG flag is set.
- * It also creates bool constant which is later used in other functions
- * for checking whether they should print debugging messages.
- */
-#ifdef NDEBUG
-  bool constexpr debug = false;
-#else
-  bool constexpr debug = true;
-#endif
 
-/**
- * Macro for getting variables' names, it is needed for functions that print
- * debugging messages.
- */
-#define GET_VAR_NAME(x) #x
+
+
+
 
   // FUNCTIONS THAT HANDLE DEBBUGING MESSAGES
 
