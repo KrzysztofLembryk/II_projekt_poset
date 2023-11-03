@@ -321,7 +321,7 @@ namespace
   {
     if constexpr (debug)
     {
-      //value = value;
+      value = value;
       cerr << fName << invalidValErr(GET_VAR_NAME(value));
     }
   }
@@ -727,6 +727,7 @@ namespace cxx
             }
           }
         }
+
         for (idx_t i = 0; i < nbrOfRows; i++)
         {
           rowVec = &(relationArr->at(i));
