@@ -22,9 +22,10 @@ namespace
   using idx_t = size_t;
   using sizeOfPoset = size_t;
   using availableIDs = queue<posetID_t>;
-  using poset_elem = string;
-  using vectorOfStrings = vector<poset_elem>;
-  using posetRelationsArray = vector<vector<int>>;
+  using posetElement = string;
+  using relationType = int;
+  using vectorOfStrings = vector<posetElement>;
+  using posetRelationsArray = vector<vector<relationType>>;
   using poset_t = pair<vectorOfStrings *, posetRelationsArray *>;
   using allPosetsMap = unordered_map<posetID_t, poset_t *>;
 
@@ -636,7 +637,7 @@ namespace cxx
     {
       vectorOfStrings *v = it->second->first;
 
-      for (const poset_elem &str : *v)
+      for (const posetElement &str : *v)
       {
         if (str == value)
         {
@@ -651,10 +652,9 @@ namespace cxx
 
       posetRelationsArray *p = it->second->second;
       // Adding new row.
-      p->push_back(vector<int>(p->size(), NO_RELATION));
-
+      p->push_back(vector<relationType>(p->size(), NO_RELATION));
       // Adding new column.
-      for (vector<int> &row : *p)
+      for (vector<relationType> &row : *p)
         row.push_back(NO_RELATION);
       
       // An element is in relation with itself.
@@ -709,7 +709,7 @@ namespace cxx
 
         posetRelationsArray *relationArr = iter->second->second;
         sizeOfPoset nbrOfRows = relationArr->size();
-        vector<int> *rowVec;
+        vector<relationType> *rowVec;
 
         for (idx_t i = 0; i < nbrOfRows; i++)
         {
