@@ -21,6 +21,7 @@ using std::vector;
 
 using posetID_t = unsigned long;
 using idx_t = size_t;
+using sizeOfPoset = size_t;
 using availableIDs = queue<posetID_t>;
 using poset_elem = string;
 using vectorOfStrings = vector<poset_elem>;
@@ -55,15 +56,15 @@ namespace
   }
 
   /**
-  * Helper function for poset_del.
-  * Checks if there are elements between elements at idx1=A and idx2=B
-  * and in relation with them. Meaning if exists C that A < C < B.
-  * If such C exists function returns true.
+   * Helper function for poset_del.
+   * Checks if there are elements between elements at idx1=A and idx2=B
+   * and in relation with them. Meaning if exists C that A < C < B.
+   * If such C exists function returns true.
   */
   bool somethingIsBetweenTwoElem(posetRelationsArray *relationArr,
                                  idx_t idx1, idx_t idx2)
   {
-    size_t nbrOfRows = relationArr->size();
+    sizeOfPoset nbrOfRows = relationArr->size();
 
     for (idx_t i = 0; i < nbrOfRows; i++)
     {
@@ -91,9 +92,9 @@ namespace
    * is changed to normal relation.
   */
   void changeRelationForSmallerElem(posetRelationsArray *relArr,
-                idx_t currentElem, idx_t idxOfElemToDelete, size_t nbrOfRows)
+                idx_t currentElem, idx_t idxOfElemToDelete, sizeOfPoset nbrOfRows)
   {
-    for (size_t j = 0; j < nbrOfRows; j++)
+    for (idx_t j = 0; j < nbrOfRows; j++)
     {
       if ((relArr->at(idxOfElemToDelete)[j] == RELATION ||
           relArr->at(idxOfElemToDelete)[j] == RELATION_TRANSITIVITY) &&
@@ -112,9 +113,9 @@ namespace
    * then it changes the relation.
   */
   void changeRelationForLargerElem(posetRelationsArray *relArr,
-                idx_t currentElem, idx_t idxOfElemToDelete, size_t nbrOfRows)
+                idx_t currentElem, idx_t idxOfElemToDelete, sizeOfPoset nbrOfRows)
   {
-    for (size_t j = 0; j < nbrOfRows; j++)
+    for (idx_t j = 0; j < nbrOfRows; j++)
     {
       if ((relArr->at(j)[idxOfElemToDelete] == RELATION ||
           relArr->at(j)[idxOfElemToDelete] == RELATION_TRANSITIVITY) &&
@@ -135,9 +136,9 @@ namespace
   {
     idx = 0;
     exist = false;
-    size_t vSize = v->size();
+    sizeOfPoset vSize = v->size();
 
-    for (size_t i = 0; i < vSize; i++)
+    for (idx_t i = 0; i < vSize; i++)
     {
       if ((*v)[i] == value)
       {
@@ -163,7 +164,7 @@ namespace
   void addTransitivityRelations(posetRelationsArray *relationArr,
                                 idx_t index1, idx_t index2)
   {
-    size_t nbrOfRows = relationArr->size();
+    sizeOfPoset nbrOfRows = relationArr->size();
 
     for (idx_t i = 0; i < nbrOfRows; i++)
     {
@@ -331,7 +332,7 @@ void insertedErr(string fName, posetID_t id, char const *value)
     getStrErr(value) << " inserted\n";
 }
 
-void containsErr(string fName, posetID_t id, size_t posetSize)
+void containsErr(string fName, posetID_t id, sizeOfPoset posetSize)
 {
   cerr << fName << getPosetIdErr(id) << " contains " <<
        posetSize << " element(s)\n";
@@ -490,7 +491,7 @@ namespace cxx {
       oneArgFuncNameErr(string(__func__), id);
 
     auto &allPosets = getAllPosets();
-    size_t sizeOfPoset = 0;
+    sizeOfPoset sizeOfPoset = 0;
 
     auto it = allPosets.find(id);
     if (it != allPosets.end())
@@ -590,7 +591,7 @@ namespace cxx {
       return false;
     }
     bool elemExists = false;
-    size_t idxOfElemToDelete;
+    idx_t idxOfElemToDelete;
     auto &allPosets = getAllPosets();
 
     auto iter = allPosets.find(id);
@@ -605,10 +606,10 @@ namespace cxx {
         (*v).erase((*v).begin() + idxOfElemToDelete);
 
         posetRelationsArray *relationArr = iter->second->second;
-        size_t nbrOfRows = relationArr->size();
+        sizeOfPoset nbrOfRows = relationArr->size();
         vector<int> *rowVec;
 
-        for (size_t i = 0; i < nbrOfRows; i++)
+        for (idx_t i = 0; i < nbrOfRows; i++)
         {
           if (i != idxOfElemToDelete)
           {
@@ -624,7 +625,7 @@ namespace cxx {
             }
           }
         }
-        for (size_t i = 0; i < nbrOfRows; i++)
+        for (idx_t i = 0; i < nbrOfRows; i++)
         {
           rowVec = &(relationArr->at(i));
           rowVec->erase(rowVec->begin() + idxOfElemToDelete);
@@ -679,7 +680,7 @@ namespace cxx {
     if (it != allPosets.end())
     {
       bool foundIndex1, foundIndex2;
-      size_t index1, index2;
+      idx_t index1, index2;
       vectorOfStrings *v = it->second->first;
 
       checkIfElemExistInVecOfStr(v, value1, index1, foundIndex1);
@@ -920,6 +921,4 @@ namespace cxx {
         posetNotExistErr(string(__func__), id);
     }
   }
-
-
 }
