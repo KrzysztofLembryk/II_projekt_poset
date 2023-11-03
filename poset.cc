@@ -33,13 +33,13 @@ namespace
 {
   const int RELATION = 1;
   const int NO_RELATION = -1;
-  const int RELATION_TRANSITIVITY = 2;
- 
- /**
-  * Function that solves order fiasko problem.
-  * Creates static variable that stores all posets and
-  * returns reference to it.
- */
+  const int REL_TRANSITIVITY = 2;
+
+  /**
+   * Function that solves order fiasko problem.
+   * Creates static variable that stores all posets and
+   * returns reference to it.
+   */
   allPosetsMap &getAllPosets()
   {
     static allPosetsMap allPosets;
@@ -49,8 +49,9 @@ namespace
   /**
    * Function that creates static variable (queue) that
    * stores available ids. It returns reference to it.
-  */
-  availableIDs &getAvailableIDs() {
+   */
+  availableIDs &getAvailableIDs()
+  {
     static availableIDs availableIDs;
     return availableIDs;
   }
@@ -60,7 +61,7 @@ namespace
    * Checks if there are elements between elements at idx1=A and idx2=B
    * and in relation with them. Meaning if exists C that A < C < B.
    * If such C exists function returns true.
-  */
+   */
   bool somethingIsBetweenTwoElem(posetRelationsArray *relationArr,
                                  idx_t idx1, idx_t idx2)
   {
@@ -71,9 +72,9 @@ namespace
       if (i != idx1 && i != idx2)
       {
         if ((relationArr->at(idx1)[i] == RELATION ||
-             relationArr->at(idx1)[i] == RELATION_TRANSITIVITY) &&
+             relationArr->at(idx1)[i] == REL_TRANSITIVITY) &&
             (relationArr->at(i)[idx2] == RELATION ||
-             relationArr->at(i)[idx2] == RELATION_TRANSITIVITY))
+             relationArr->at(i)[idx2] == REL_TRANSITIVITY))
         {
           return true;
         }
@@ -90,15 +91,15 @@ namespace
    * and if elem1 has transitivity relation with elem2,
    * where elem_to_remove < elem2, than relation between elem1 < elem2
    * is changed to normal relation.
-  */
+   */
   void changeRelationForSmallerElem(posetRelationsArray *relArr,
-                idx_t currentElem, idx_t idxOfElemToDelete, sizeOfPoset nbrOfRows)
+                                    idx_t currentElem, idx_t idxOfElemToDelete, sizeOfPoset nbrOfRows)
   {
     for (idx_t j = 0; j < nbrOfRows; j++)
     {
       if ((relArr->at(idxOfElemToDelete)[j] == RELATION ||
-          relArr->at(idxOfElemToDelete)[j] == RELATION_TRANSITIVITY) &&
-          relArr->at(currentElem)[j] == RELATION_TRANSITIVITY)
+           relArr->at(idxOfElemToDelete)[j] == REL_TRANSITIVITY) &&
+          relArr->at(currentElem)[j] == REL_TRANSITIVITY)
       {
         relArr->at(currentElem)[j] = RELATION;
       }
@@ -111,15 +112,15 @@ namespace
    * meaning elem_to_delete < elem1. Than it finds elements that
    * elem2 < elem_to_delete and if elem2 < elem1 transitivity
    * then it changes the relation.
-  */
+   */
   void changeRelationForLargerElem(posetRelationsArray *relArr,
-                idx_t currentElem, idx_t idxOfElemToDelete, sizeOfPoset nbrOfRows)
+                                   idx_t currentElem, idx_t idxOfElemToDelete, sizeOfPoset nbrOfRows)
   {
     for (idx_t j = 0; j < nbrOfRows; j++)
     {
       if ((relArr->at(j)[idxOfElemToDelete] == RELATION ||
-          relArr->at(j)[idxOfElemToDelete] == RELATION_TRANSITIVITY) &&
-          relArr->at(j)[currentElem] == RELATION_TRANSITIVITY)
+           relArr->at(j)[idxOfElemToDelete] == REL_TRANSITIVITY) &&
+          relArr->at(j)[currentElem] == REL_TRANSITIVITY)
       {
         relArr->at(j)[currentElem] = RELATION;
       }
@@ -130,7 +131,7 @@ namespace
    * Function checks if an element (value) is in a poset and sets
    * exist variable to adequate value, also if element exist it
    * remembers its position in vector in idx variable.
-  */
+   */
   void checkIfElemExistInVecOfStr(vectorOfStrings *v, char const *value,
                                   idx_t &idx, bool &exist)
   {
@@ -151,16 +152,16 @@ namespace
 
   /**
    * Function knows that relation between elemIdx1 and elemIdx2 exists,
-   * thus it adds transitivity relation between elems Xi < elemIdx1 and 
+   * thus it adds transitivity relation between elems Xi < elemIdx1 and
    * elemIdx2 and elems Yi that: elemIdx2 < Xi. Function does this
    * by using nested for loop, since it needs to check all elements in
-   * our poset. 
-   * If current elem_i is in relation or transitivity relation 
+   * our poset.
+   * If current elem_i is in relation or transitivity relation
    * with elemIdx1 and is in neither of available relations
    * with elemIdx2 than elem_i has transitivity relation with elemIdx2.
-   * However, after we created this relation, we need to create 
+   * However, after we created this relation, we need to create
    * transitivity relations for elem_i and all elems Yj that elemIdx2 < Yj.
-  */
+   */
   void addTransitivityRelations(posetRelationsArray *relationArr,
                                 idx_t index1, idx_t index2)
   {
@@ -168,27 +169,28 @@ namespace
 
     for (idx_t i = 0; i < nbrOfRows; i++)
     {
-      if (i != index1 && i != index2) {
+      if (i != index1 && i != index2)
+      {
         if ((relationArr->at(i)[index1] == RELATION ||
-            relationArr->at(i)[index1] == RELATION_TRANSITIVITY) &&
+             relationArr->at(i)[index1] == REL_TRANSITIVITY) &&
             relationArr->at(i)[index2] == NO_RELATION)
         {
-          relationArr->at(i)[index2] = RELATION_TRANSITIVITY;
+          relationArr->at(i)[index2] = REL_TRANSITIVITY;
           for (idx_t j = 0; j < nbrOfRows; j++)
           {
             if ((relationArr->at(index2)[j] == RELATION ||
-                relationArr->at(index2)[j] == RELATION_TRANSITIVITY) &&
+                 relationArr->at(index2)[j] == REL_TRANSITIVITY) &&
                 relationArr->at(i)[j] == NO_RELATION)
             {
-              relationArr->at(i)[j] = RELATION_TRANSITIVITY;
+              relationArr->at(i)[j] = REL_TRANSITIVITY;
             }
           }
         }
         else if (relationArr->at(index1)[i] == NO_RELATION &&
-                (relationArr->at(index2)[i] == RELATION ||
-                relationArr->at(index2)[i] == RELATION_TRANSITIVITY))
+                 (relationArr->at(index2)[i] == RELATION ||
+                  relationArr->at(index2)[i] == REL_TRANSITIVITY))
         {
-          relationArr->at(index1)[i] = RELATION_TRANSITIVITY;
+          relationArr->at(index1)[i] = REL_TRANSITIVITY;
         }
       }
     }
@@ -198,25 +200,25 @@ namespace
  * Preprocessor directive that checks whether NDEBUG flag is set.
  * It also creates bool constant which is later used in other functions
  * for checking whether they should print debugging messages.
-*/
+ */
 #ifdef NDEBUG
-bool constexpr debug = false;
+  bool constexpr debug = false;
 #else
-bool constexpr debug = true;
+  bool constexpr debug = true;
 #endif
 
 /**
  * Macro for getting variables' names, it is needed for functions that print
  * debugging messages.
-*/
+ */
 #define GET_VAR_NAME(x) #x
 
-// FUNCTIONS THAT HANDLE DEBBUGING MESSAGES
+  // FUNCTIONS THAT HANDLE DEBBUGING MESSAGES
 
-/**
- * Function creates from char const* string that is between "",
- * it also handles case when char const* is nullptr, and returns NULL. 
-*/
+  /**
+   * Function creates from char const* string that is between "",
+   * it also handles case when char const* is nullptr, and returns NULL.
+   */
   string getStrErr(char const *val)
   {
     if (val == nullptr)
@@ -227,10 +229,10 @@ bool constexpr debug = true;
     return str;
   }
 
-/**
- * Function returns either string = "(s1, s2)" or
- * if s2 is empty it returns only "(s1)".
-*/
+  /**
+   * Function returns either string = "(s1, s2)" or
+   * if s2 is empty it returns only "(s1)".
+   */
   string getPairErr(string const &s1, string const &s2 = "")
   {
     if (!s2.empty())
@@ -239,9 +241,9 @@ bool constexpr debug = true;
       return "(" + s1 + ")";
   }
 
-/**
- * Function returns string = ": poset id".
-*/
+  /**
+   * Function returns string = ": poset id".
+   */
   string getPosetIdErr(posetID_t id)
   {
     string str(": poset ");
@@ -267,153 +269,190 @@ bool constexpr debug = true;
   }
 
   string relationErr(string fName, posetID_t id,
-  char const *value1, char const *value2)
+                     char const *value1, char const *value2)
   {
     return fName + getPosetIdErr(id) + commaElemErr("relation") +
-        getPairErr(getStrErr(value1), getStrErr(value2));
+           getPairErr(getStrErr(value1), getStrErr(value2));
   }
 
-// FUNCTIONS THAT WRAP THE SAME DEBUGGING MESSAGES CASES
+  // FUNCTIONS THAT WRAP THE SAME DEBUGGING MESSAGES CASES
 
-void posetNotExistErr(string fName, posetID_t id)
-{
-  cerr << fName << getPosetIdErr(id) << lastExprErr();
-}
-
-void elemNotExistErr(string fName, posetID_t id, char const *value)
-{
-  cerr << fName << getPosetIdErr(id) << commaElemErr() <<
-        getStrErr(value) << lastExprErr();
-}
-
-void elemExistErr(string fName, posetID_t id, char const *value)
-{
-  cerr << fName << getPosetIdErr(id) << commaElemErr() <<
-        getStrErr(value) << " already exists\n";
-}
-
-void twoValueNullErr(string fName, char const *value1, char const *value2)
-{
-  if (value1 == nullptr)
-    cerr << fName << invalidValErr(GET_VAR_NAME(value1));
-  if (value2 == nullptr)
-    cerr << fName << invalidValErr(GET_VAR_NAME(value2));
-}
-
-void oneValueNullErr(string fName, char const *value)
-{
-  value = value;
-  cerr << fName << invalidValErr(GET_VAR_NAME(value));
-}
-
-void threeArgFuncNameErr(string fName, posetID_t id, 
-  char const *value1, char const *value2)
-{
-  cerr << fName << getPairErr(to_string(id),
-    getStrErr(value1) + ", " + getStrErr(value2)) << "\n";
-}
-
-void twoArgFuncNameErr(string fName, posetID_t id, char const *value)
-{
-  cerr << fName << getPairErr(to_string(id), getStrErr(value)) << "\n";
-}
-
-void oneArgFuncNameErr(string fName, posetID_t id)
-{
-  if (fName == "poset_new")
-    cerr << fName << "()\n";
-  else
-    cerr << fName << getPairErr(to_string(id)) << "\n";
-}
-
-void insertedErr(string fName, posetID_t id, char const *value)
-{
-  cerr << fName << getPosetIdErr(id) << commaElemErr() <<
-    getStrErr(value) << " inserted\n";
-}
-
-void containsErr(string fName, posetID_t id, sizeOfPoset posetSize)
-{
-  cerr << fName << getPosetIdErr(id) << " contains " <<
-       posetSize << " element(s)\n";
-}
-
-void elemRemovedErr(string fName, posetID_t id, char const *value)
-{
-  cerr << fName << getPosetIdErr(id) << commaElemErr() <<
-      getStrErr(value) << " removed\n";
-}
-
-void isRelationAddedErr(int isAdded, string fName, posetID_t id,
-char const *value1, char const *value2)
-{
-  if (isAdded == NO_RELATION)
+  void posetNotExistErr(string fName, posetID_t id)
   {
-    cerr << relationErr(fName, id, value1, value2) <<
-      lastExprErr("cannot be added");
+    if constexpr (debug)
+    {
+      cerr << fName << getPosetIdErr(id) << lastExprErr();
+    }
   }
-  else if (isAdded == RELATION)
+
+  void elemNotExistErr(string fName, posetID_t id, char const *value)
   {
-    cerr << relationErr(fName, id, value1, value2) <<
-      lastExprErr("added");
+    if constexpr (debug)
+    {
+      cerr << fName << getPosetIdErr(id) << commaElemErr() << getStrErr(value) << lastExprErr();
+    }
+  }
+
+  void elemExistErr(string fName, posetID_t id, char const *value)
+  {
+    if constexpr (debug)
+    {
+      cerr << fName << getPosetIdErr(id) << commaElemErr() << getStrErr(value) << " already exists\n";
+    }
+  }
+
+  void twoValueNullErr(string fName, char const *value1, char const *value2)
+  {
+    if constexpr (debug)
+    {
+      if (value1 == nullptr)
+        cerr << fName << invalidValErr(GET_VAR_NAME(value1));
+      if (value2 == nullptr)
+        cerr << fName << invalidValErr(GET_VAR_NAME(value2));
+    }
+  }
+
+  void oneValueNullErr(string fName, char const *value)
+  {
+    if constexpr (debug)
+    {
+      value = value;
+      cerr << fName << invalidValErr(GET_VAR_NAME(value));
+    }
+  }
+
+  void threeArgFuncNameErr(string fName, posetID_t id,
+                           char const *value1, char const *value2)
+  {
+    if constexpr (debug)
+    {
+      cerr << fName << getPairErr(to_string(id), getStrErr(value1) + ", " + getStrErr(value2)) << "\n";
+    }
+  }
+
+  void twoArgFuncNameErr(string fName, posetID_t id, char const *value)
+  {
+    if constexpr (debug)
+    {
+      cerr << fName << getPairErr(to_string(id), getStrErr(value)) << "\n";
+    }
+  }
+
+  void oneArgFuncNameErr(string fName, posetID_t id)
+  {
+    if constexpr (debug)
+    {
+      if (fName == "poset_new")
+        cerr << fName << "()\n";
+      else
+        cerr << fName << getPairErr(to_string(id)) << "\n";
+    }
+  }
+
+  void insertedErr(string fName, posetID_t id, char const *value)
+  {
+    if constexpr (debug)
+    {
+      cerr << fName << getPosetIdErr(id) << commaElemErr() << getStrErr(value) << " inserted\n";
+    }
+  }
+
+  void containsErr(string fName, posetID_t id, sizeOfPoset posetSize)
+  {
+    if constexpr (debug)
+    {
+      cerr << fName << getPosetIdErr(id) << " contains " << posetSize << 
+      " element(s)\n";
+    }
+  }
+
+  void elemRemovedErr(string fName, posetID_t id, char const *value)
+  {
+    if constexpr (debug)
+    {
+      cerr << fName << getPosetIdErr(id) << commaElemErr() << getStrErr(value) << " removed\n";
+    }
+  }
+
+  void isRelationAddedErr(int isAdded, string fName, posetID_t id,
+                          char const *value1, char const *value2)
+  {
+    if constexpr (debug)
+    {
+      if (isAdded == NO_RELATION)
+      {
+        cerr << relationErr(fName, id, value1, value2) << 
+          lastExprErr("cannot be added");
+      }
+      else if (isAdded == RELATION)
+      {
+        cerr << relationErr(fName, id, value1, value2) << lastExprErr("added");
+      }
+    }
+  }
+
+  void isRelationDeletedErr(bool isDeleted, string fName, posetID_t id,
+                            char const *value1, char const *value2)
+  {
+    if constexpr (debug)
+    {
+      if (isDeleted)
+      {
+        cerr << relationErr(fName, id, value1, value2) << 
+          lastExprErr("deleted");
+      }
+      else
+      {
+        cerr << relationErr(fName, id, value1, value2) << 
+          lastExprErr("cannot be deleted");
+      }
+    }
+  }
+
+  void relationExistsErr(bool exists, string fName, posetID_t id,
+                         char const *value1, char const *value2)
+  {
+    if constexpr (debug)
+    {
+      if (exists)
+      {
+        cerr << relationErr(fName, id, value1, value2) << lastExprErr("exists");
+      }
+      else
+      {
+        cerr << relationErr(fName, id, value1, value2) << lastExprErr();
+      }
+    }
+  }
+
+  void stateOfPosetErr(string fName, posetID_t id)
+  {
+    if constexpr (debug)
+    {
+      string str;
+
+      if (fName == "poset_new")
+        str = "created";
+      else if (fName == "poset_clear")
+        str = "cleared";
+      else
+        str = "deleted";
+
+      cerr << fName << getPosetIdErr(id) << lastExprErr(str);
+    }
   }
 }
 
-void isRelationDeletedErr(bool isDeleted, string fName, posetID_t id,
-char const *value1, char const *value2)
+namespace cxx
 {
-  if(isDeleted)
-  {
-    cerr << relationErr(fName, id, value1, value2) <<
-      lastExprErr("deleted");
-  }
-  else
-  {
-    cerr << relationErr(fName, id, value1, value2) <<
-      lastExprErr("cannot be deleted");
-  }
-}
-
-void relationExistsErr(bool exists, string fName, posetID_t id,
-char const *value1, char const *value2)
-{
-  if(exists)
-  {
-    cerr << relationErr(fName, id, value1, value2) <<
-      lastExprErr("exists");
-  }
-  else
-  {
-    cerr << relationErr(fName, id, value1, value2) <<
-      lastExprErr();
-  }
-}
-
-void stateOfPosetErr(string fName, posetID_t id)
-{
-  string str;
-
-  if (fName == "poset_new")
-    str = "created";
-  else if (fName == "poset_clear")
-    str = "cleared";
-  else
-    str = "deleted";
-
-  cerr << fName << getPosetIdErr(id) << lastExprErr(str);
-}
-
-}
-
-namespace cxx {
 
   /*
-  * Creates a new poset and assigns it an id from the queue
-  * of available (deleted) ids. If there are no such ids,
-  * it assigns an id that is 1 greater than the previous one that
-  * was not taken from queue.
-  * Returns this id.
-  */
+   * Creates a new poset and assigns it an id from the queue
+   * of available (deleted) ids. If there are no such ids,
+   * it assigns an id that is 1 greater than the previous one that
+   * was not taken from queue.
+   * Returns this id.
+   */
   unsigned long poset_new(void)
   {
     static posetID_t nextID = 0;
@@ -442,7 +481,7 @@ namespace cxx {
     allPosets.insert({id, newPoset});
 
     if constexpr (debug)
-        stateOfPosetErr(string(__func__), id);
+      stateOfPosetErr(string(__func__), id);
 
     return id;
   }
@@ -451,7 +490,7 @@ namespace cxx {
    * If a poset with the identifier id exists, function removes memory that
    * was allocated for the poset and adds its id to the queue of deleted itds.
    * Otherwise, it does nothing.
-  */
+   */
   void poset_delete(unsigned long id)
   {
     if constexpr (debug)
@@ -477,14 +516,13 @@ namespace cxx {
       if constexpr (debug)
         posetNotExistErr(string(__func__), id);
     }
-
   }
 
   /*
-  * If a poset with the indetifier id exists, the result
-  * is the number of its elements.
-  * Otherwise, it is 0.
-  */
+   * If a poset with the indetifier id exists, the result
+   * is the number of its elements.
+   * Otherwise, it is 0.
+   */
   size_t poset_size(unsigned long id)
   {
     if constexpr (debug)
@@ -511,12 +549,12 @@ namespace cxx {
   }
 
   /*
-  * If a poset with the indetifier id exists and the element value
-  * is not part of that set, it adds the element to the set,
-  * otherwise it does nothing. The new element is not related to any other
-  * element. The result is true when the element has been added,
-  * and false otherwise.
-  */
+   * If a poset with the indetifier id exists and the element value
+   * is not part of that set, it adds the element to the set,
+   * otherwise it does nothing. The new element is not related to any other
+   * element. The result is true when the element has been added,
+   * and false otherwise.
+   */
   bool poset_insert(unsigned long id, char const *value)
   {
     if constexpr (debug)
@@ -574,11 +612,11 @@ namespace cxx {
   }
 
   /*
-  * If a poset with the identifier id exists and the element value
-  * belongs to that set, it removes the element from the set and also
-  * removes all relations of that element; otherwise, it does nothing.
-  * The result is true when the element has been removed, and false otherwise.
-  */
+   * If a poset with the identifier id exists and the element value
+   * belongs to that set, it removes the element from the set and also
+   * removes all relations of that element; otherwise, it does nothing.
+   * The result is true when the element has been removed, and false otherwise.
+   */
   bool poset_remove(unsigned long id, char const *value)
   {
     if constexpr (debug)
@@ -614,12 +652,12 @@ namespace cxx {
           if (i != idxOfElemToDelete)
           {
             if (relationArr->at(i)[idxOfElemToDelete] == RELATION ||
-                relationArr->at(i)[idxOfElemToDelete] == RELATION_TRANSITIVITY)
+                relationArr->at(i)[idxOfElemToDelete] == REL_TRANSITIVITY)
             {
               changeRelationForSmallerElem(relationArr, i, idxOfElemToDelete, nbrOfRows);
             }
             else if (relationArr->at(idxOfElemToDelete)[i] == RELATION ||
-                relationArr->at(idxOfElemToDelete)[i] == RELATION_TRANSITIVITY)
+                     relationArr->at(idxOfElemToDelete)[i] == REL_TRANSITIVITY)
             {
               changeRelationForLargerElem(relationArr, i, idxOfElemToDelete, nbrOfRows);
             }
@@ -643,7 +681,6 @@ namespace cxx {
         if constexpr (debug)
           elemNotExistErr(string(__func__), id, value);
       }
-
     }
     else
     {
@@ -655,13 +692,13 @@ namespace cxx {
   }
 
   /*
-  * If a poset with the identifier id exists and the elements value1
-  * and value2 belong to that set and are not related, it extends
-  * the relation so that the element value1 precedes the element value2;
-  * otherwise, it does nothing.
-  * The result is true when the relation has been extended,
-  * and false otherwise.
-  */
+   * If a poset with the identifier id exists and the elements value1
+   * and value2 belong to that set and are not related, it extends
+   * the relation so that the element value1 precedes the element value2;
+   * otherwise, it does nothing.
+   * The result is true when the relation has been extended,
+   * and false otherwise.
+   */
   bool poset_add(unsigned long id, char const *value1, char const *value2)
   {
     if constexpr (debug)
@@ -710,8 +747,8 @@ namespace cxx {
         // meaning the elements are in relation, then do nothing.
         if (relationArr->at(index1)[index2] == RELATION ||
             relationArr->at(index2)[index1] == RELATION ||
-            relationArr->at(index1)[index2] == RELATION_TRANSITIVITY ||
-            relationArr->at(index2)[index1] == RELATION_TRANSITIVITY)
+            relationArr->at(index1)[index2] == REL_TRANSITIVITY ||
+            relationArr->at(index2)[index1] == REL_TRANSITIVITY)
         {
           if constexpr (debug)
             isRelationAddedErr(NO_RELATION, string(__func__), id, value1, value2);
@@ -743,13 +780,13 @@ namespace cxx {
   }
 
   /*
-  * If a poset with the identifier id exists, the elements value1 and value2
-  * belong to that set, element value1 precedes element value2, and removing
-  * the relation between elements value1 and value2 will not violate
-  * the conditions of being a partial order, then it removes the relation
-  * between these elements; otherwise, it does nothing.
-  * The result is true when the relation has been changed, and false otherwise.
-  */
+   * If a poset with the identifier id exists, the elements value1 and value2
+   * belong to that set, element value1 precedes element value2, and removing
+   * the relation between elements value1 and value2 will not violate
+   * the conditions of being a partial order, then it removes the relation
+   * between these elements; otherwise, it does nothing.
+   * The result is true when the relation has been changed, and false otherwise.
+   */
   bool poset_del(unsigned long id, char const *value1, char const *value2)
   {
     if constexpr (debug)
@@ -797,18 +834,18 @@ namespace cxx {
         posetRelationsArray *relationArr = iter->second->second;
 
         if (relationArr->at(index1)[index2] == RELATION ||
-            relationArr->at(index1)[index2] == RELATION_TRANSITIVITY)
+            relationArr->at(index1)[index2] == REL_TRANSITIVITY)
         {
-            if (!somethingIsBetweenTwoElem(relationArr, index1, index2))
-            {
-                relationArr->at(index1)[index2] = NO_RELATION;
-                relationArr->at(index2)[index1] = NO_RELATION;
+          if (!somethingIsBetweenTwoElem(relationArr, index1, index2))
+          {
+            relationArr->at(index1)[index2] = NO_RELATION;
+            relationArr->at(index2)[index1] = NO_RELATION;
 
-                if constexpr (debug)
-                isRelationDeletedErr(true, string(__func__), id, value1, value2);
+            if constexpr (debug)
+              isRelationDeletedErr(true, string(__func__), id, value1, value2);
 
-                return true;
-            }
+            return true;
+          }
         }
         if constexpr (debug)
           isRelationDeletedErr(false, string(__func__), id, value1, value2);
@@ -820,15 +857,14 @@ namespace cxx {
         posetNotExistErr(string(__func__), id);
     }
 
-
     return false;
   }
 
   /*
-  * If a poset with the identifier id exists, the elements value1 and value2
-  * belong to that set, and element value1 precedes element value2,
-  * then the result is true; otherwise, it is false."
-  */
+   * If a poset with the identifier id exists, the elements value1 and value2
+   * belong to that set, and element value1 precedes element value2,
+   * then the result is true; otherwise, it is false."
+   */
   bool poset_test(unsigned long id, char const *value1, char const *value2)
   {
     if constexpr (debug)
@@ -872,7 +908,7 @@ namespace cxx {
         // If elements (value1 and value2) are in relation,
         // meaning if an element value1 precedes element value2.
         if (p->at(index1)[index2] == RELATION ||
-          p->at(index1)[index2] == RELATION_TRANSITIVITY)
+            p->at(index1)[index2] == REL_TRANSITIVITY)
         {
           if constexpr (debug)
             relationExistsErr(true, string(__func__), id, value1, value2);
@@ -893,10 +929,10 @@ namespace cxx {
   }
 
   /*
-  * If the poset with the identifier id exists, it removes
-  * all its elements and the relations between them.
-  * Otherwise, it does nothing.
-  */
+   * If the poset with the identifier id exists, it removes
+   * all its elements and the relations between them.
+   * Otherwise, it does nothing.
+   */
   void poset_clear(unsigned long id)
   {
     if constexpr (debug)
