@@ -291,7 +291,7 @@ namespace
 
   /**
    * Function returns string: 
-   * "funcName: poset id, element "value" does not exist"
+   * "funcName: poset id, element "value" does not exist".
   */
   void elemNotExistErr(string const &fName, posetID_t id, char const *value)
   {
@@ -303,7 +303,7 @@ namespace
 
   /**
    * Function returns string: 
-   * "funcName: poset id, element "value" already exists"
+   * "funcName: poset id, element "value" already exists".
   */
   void elemExistErr(string const &fName, posetID_t id, char const *value)
   {
@@ -314,7 +314,7 @@ namespace
   }
 
   /**
-   * Function returns string:
+   * Function returns string: "funcName: invalid value (NULL)".
   */
   void oneValueNullErr(string const &fName, char const *value)
   {
@@ -324,6 +324,7 @@ namespace
       cerr << fName << invalidValErr(GET_VAR_NAME(value));
     }
   }
+
   /**
    * Function returns string: "funcName: invalid valuei (NULL)"
    * where valuei = value1 or value2 (meaning names of these variables).
@@ -334,14 +335,15 @@ namespace
     if constexpr (debug)
     {
       if (value1 == nullptr)
-        oneValueNullErr(fName, value1);
+        cerr << fName << invalidValErr(GET_VAR_NAME(value1));
       if (value2 == nullptr)
-        oneValueNullErr(fName, value2);
+        cerr << fName << invalidValErr(GET_VAR_NAME(value2));
     }
   }
 
-  
-
+  /**
+   * Function returns string: "funcName(id, "value1", "value2")".
+  */
   void threeArgFuncNameErr(string const &fName, posetID_t id,
                            char const *value1, char const *value2)
   {
@@ -351,6 +353,9 @@ namespace
     }
   }
 
+  /**
+   * Function returns string: "funcName(id, "value")".
+  */
   void twoArgFuncNameErr(string const &fName, posetID_t id, char const *value)
   {
     if constexpr (debug)
@@ -359,6 +364,10 @@ namespace
     }
   }
 
+  /**
+   * Function returns string: "funcName(id)".
+   * If funcName = poset_new it returns "poset_new()".
+  */
   void oneArgFuncNameErr(string const &fName, posetID_t id)
   {
     if constexpr (debug)
@@ -370,6 +379,9 @@ namespace
     }
   }
 
+  /**
+   * Function returns string: "funcName: poset id, element "value" inserted".
+  */
   void insertedErr(string const &fName, posetID_t id, char const *value)
   {
     if constexpr (debug)
@@ -378,6 +390,9 @@ namespace
     }
   }
 
+  /**
+   * Function returns string: "funcName: poset id contains n element(s)".
+  */
   void containsErr(string const &fName, posetID_t id, sizeOfPoset posetSize)
   {
     if constexpr (debug)
@@ -387,6 +402,9 @@ namespace
     }
   }
 
+  /**
+   * Function returns string: "funcName: poset id, element "value" removed".
+  */
   void elemRemovedErr(string const &fName, posetID_t id, char const *value)
   {
     if constexpr (debug)
@@ -395,6 +413,11 @@ namespace
     }
   }
 
+  /**
+   * Function returns string: "funcName: poset id, relation (val1, val2) added"
+   * or "... cannot be added". 
+   * depending on value of isAdded variable.
+  */
   void isRelationAddedErr(int isAdded, string const &fName, posetID_t id,
                           char const *value1, char const *value2)
   {
@@ -412,6 +435,10 @@ namespace
     }
   }
 
+  /**
+   * Function returns string:"funcName: poset id, relation (val1, val2) deleted"
+   * or "... cannot be deleted".
+  */
   void isRelationDeletedErr(bool isDeleted, string const &fName, posetID_t id,
                             char const *value1, char const *value2)
   {
@@ -430,6 +457,10 @@ namespace
     }
   }
 
+  /**
+   * Function returns string:"funcName: poset id, relation (val1, val2) exists"
+   * or "... does not exist".
+  */
   void relationExistsErr(bool exists, string const &fName, posetID_t id,
                          char const *value1, char const *value2)
   {
@@ -446,6 +477,10 @@ namespace
     }
   }
 
+  /**
+   * Function returns string: "funcName: poset id expression",
+   * where expression = created or cleared or deleted.
+  */
   void stateOfPosetErr(string const &fName, posetID_t id)
   {
     if constexpr (debug)
