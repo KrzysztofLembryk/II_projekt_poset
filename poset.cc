@@ -22,9 +22,9 @@ namespace
   using idx_t = size_t;
   using sizeOfPoset = size_t;
   using availableIDs = queue<posetID_t>;
-  using posetElement = string;
+  using posetElem = string;
   using relationType = int;
-  using vectorOfStrings = vector<posetElement>;
+  using vectorOfStrings = vector<posetElem>;
   using posetRelationsArray = vector<vector<relationType>>;
   using poset_t = pair<vectorOfStrings *, posetRelationsArray *>;
   using allPosetsMap = unordered_map<posetID_t, poset_t *>;
@@ -637,7 +637,7 @@ namespace cxx
     {
       vectorOfStrings *v = it->second->first;
 
-      for (const posetElement &str : *v)
+      for (const posetElem &str : *v)
       {
         if (str == value)
         {
@@ -647,7 +647,7 @@ namespace cxx
         }
       }
       
-      poset_elem elemToAdd(value);
+      posetElem elemToAdd(value);
       v->push_back(elemToAdd);
 
       posetRelationsArray *p = it->second->second;
