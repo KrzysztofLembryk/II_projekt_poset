@@ -1,4 +1,3 @@
-#include <cassert>
 #include <queue>
 #include <string>
 #include <unordered_map>
@@ -43,7 +42,7 @@ namespace
   #else
   bool constexpr debug = true;
   #endif
-  
+
   /**
    * Macro for getting variables' names, it is needed for functions that print 
    * debugging messages. 
