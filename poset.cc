@@ -6,31 +6,29 @@
 
 #include "poset.h"
 
-#define assertm(exp, msg) assert(((void)msg, exp))
-
-using std::cerr;
-using std::cin;
-using std::cout;
-using std::exit;
-using std::pair;
-using std::queue;
-using std::string;
-using std::to_string;
-using std::unordered_map;
-using std::vector;
-
-using posetID_t = unsigned long;
-using idx_t = size_t;
-using sizeOfPoset = size_t;
-using availableIDs = queue<posetID_t>;
-using poset_elem = string;
-using vectorOfStrings = vector<poset_elem>;
-using posetRelationsArray = vector<vector<int>>;
-using poset_t = pair<vectorOfStrings *, posetRelationsArray *>;
-using allPosetsMap = unordered_map<posetID_t, poset_t *>;
-
 namespace
 {
+  using std::cerr;
+  using std::cin;
+  using std::cout;
+  using std::exit;
+  using std::pair;
+  using std::queue;
+  using std::string;
+  using std::to_string;
+  using std::unordered_map;
+  using std::vector;
+
+  using posetID_t = unsigned long;
+  using idx_t = size_t;
+  using sizeOfPoset = size_t;
+  using availableIDs = queue<posetID_t>;
+  using poset_elem = string;
+  using vectorOfStrings = vector<poset_elem>;
+  using posetRelationsArray = vector<vector<int>>;
+  using poset_t = pair<vectorOfStrings *, posetRelationsArray *>;
+  using allPosetsMap = unordered_map<posetID_t, poset_t *>;
+
   const int RELATION = 1;
   const int NO_RELATION = -1;
   const int REL_TRANSITIVITY = 2;
