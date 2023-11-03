@@ -501,7 +501,6 @@ namespace
 
 namespace cxx
 {
-
   /*
    * Creates a new poset and assigns it an id from the queue
    * of available (deleted) ids. If there are no such ids,
@@ -519,6 +518,7 @@ namespace cxx
 
     auto &allPosets = getAllPosets();
     auto &availableIDs = getAvailableIDs();
+
     if (!availableIDs.empty())
     {
       id = availableIDs.front();
@@ -534,6 +534,7 @@ namespace cxx
     posetRelationsArray *newRelationsArr = new posetRelationsArray;
     newPoset->first = newVecOfPosetElem;
     newPoset->second = newRelationsArr;
+
     allPosets.insert({id, newPoset});
 
     if constexpr (debug)
@@ -553,15 +554,18 @@ namespace cxx
       oneArgFuncNameErr(string(__func__), id);
 
     auto &allPosets = getAllPosets();
-
     auto it = allPosets.find(id);
+
     if (it != allPosets.end())
     {
       auto &availableIDs = getAvailableIDs();
+
       availableIDs.push(id);
+
       delete it->second->first;
       delete it->second->second;
       delete it->second;
+
       allPosets.erase(it);
 
       if constexpr (debug)
@@ -586,12 +590,13 @@ namespace cxx
 
     auto &allPosets = getAllPosets();
     sizeOfPoset sizeOfPoset = 0;
-
     auto it = allPosets.find(id);
+
     if (it != allPosets.end())
     {
       vectorOfStrings *v = it->second->first;
       sizeOfPoset = v->size();
+
       if constexpr (debug)
         containsErr(string(__func__), id, sizeOfPoset);
     }
@@ -625,8 +630,8 @@ namespace cxx
     }
 
     auto &allPosets = getAllPosets();
-
     auto it = allPosets.find(id);
+
     if (it != allPosets.end())
     {
       vectorOfStrings *v = it->second->first;
@@ -640,16 +645,18 @@ namespace cxx
           return false;
         }
       }
-      // Adding an element to the string vector.
+      
       poset_elem elemToAdd(value);
       v->push_back(elemToAdd);
 
       posetRelationsArray *p = it->second->second;
       // Adding new row.
       p->push_back(vector<int>(p->size(), NO_RELATION));
+
       // Adding new column.
       for (vector<int> &row : *p)
         row.push_back(NO_RELATION);
+      
       // An element is in relation with itself.
       p->at(p->size() - 1)[p->size() - 1] = RELATION;
 
@@ -684,11 +691,12 @@ namespace cxx
         oneValueNullErr(string(__func__), value);
       return false;
     }
+
     bool elemExists = false;
     idx_t idxOfElemToDelete;
     auto &allPosets = getAllPosets();
-
     auto iter = allPosets.find(id);
+
     if (iter != allPosets.end())
     {
       vectorOfStrings *v = iter->second->first;
@@ -768,8 +776,8 @@ namespace cxx
     }
 
     auto &allPosets = getAllPosets();
-
     auto it = allPosets.find(id);
+
     if (it != allPosets.end())
     {
       bool foundIndex1, foundIndex2;
@@ -856,8 +864,8 @@ namespace cxx
     }
 
     auto &allPosets = getAllPosets();
-
     auto iter = allPosets.find(id);
+
     if (iter != allPosets.end())
     {
       bool foundIdx1, foundIdx2;
@@ -935,8 +943,8 @@ namespace cxx
     }
 
     auto &allPosets = getAllPosets();
-
     auto it = allPosets.find(id);
+
     if (it != allPosets.end())
     {
       idx_t index1, index2;
@@ -995,12 +1003,13 @@ namespace cxx
       oneArgFuncNameErr(string(__func__), id);
 
     auto &allPosets = getAllPosets();
-
     auto it = allPosets.find(id);
+
     if (it != allPosets.end())
     {
       vectorOfStrings *v = it->second->first;
       posetRelationsArray *p = it->second->second;
+      
       v->clear();
       p->clear();
 
